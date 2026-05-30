@@ -264,6 +264,14 @@ input[type=range]::-moz-range-thumb{width:15px;height:15px;border:none;border-ra
 .btn-test:disabled{opacity:.6;cursor:default}
 .btn-test svg{width:14px;height:14px}
 .test-hint{font-family:var(--fm);font-size:9px;color:var(--t3);letter-spacing:.04em;margin-bottom:12px;line-height:1.5}
+.presets{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px}
+.psbtn{display:flex;flex-direction:column;align-items:center;gap:3px;background:var(--s2);border:1px solid var(--b2);border-radius:var(--rm);padding:11px 6px;cursor:pointer;transition:all .15s;position:relative;overflow:hidden}
+.psbtn:hover{border-color:var(--b3);background:var(--s3)}
+.psbtn .ps-t{font-family:var(--fd);font-size:11.5px;font-weight:700;color:var(--t1)}
+.psbtn .ps-s{font-family:var(--fm);font-size:8px;color:var(--t3);letter-spacing:.03em;text-align:center}
+.psbtn.ps-ready::before{content:'';position:absolute;left:0;top:0;width:100%;height:2px;background:var(--green)}
+.psbtn.ps-short{opacity:.6}
+.psbtn.ps-short::before{content:'';position:absolute;left:0;top:0;width:100%;height:2px;background:#D8AE63}
 .ss-row{display:flex;align-items:center;gap:11px;padding:11px 10px;border-radius:var(--rm);transition:background .12s}
 .ss-row:hover{background:var(--s2)}
 .ss-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
@@ -485,6 +493,17 @@ input[type=range]::-moz-range-thumb{width:15px;height:15px;border:none;border-ra
           <span class="rval" id="cnt-val">3</span>
         </div>
       </div>
+    </div>
+
+    <div class="fg">
+      <div class="fgl">Gyors összeállítás</div>
+      <div class="presets">
+        <button class="psbtn" id="ps-free" type="button"><span class="ps-t">Ingyenes</span><span class="ps-s">csak $0 modellek</span></button>
+        <button class="psbtn" id="ps-cheap" type="button"><span class="ps-t">Költséghatékony</span><span class="ps-s">legolcsóbb fizetős</span></button>
+        <button class="psbtn" id="ps-custom" type="button"><span class="ps-t">Egyéni</span><span class="ps-s">mentett összeállítás</span></button>
+      </div>
+      <button class="btn-test" id="ps-save" type="button" style="margin-top:8px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>Jelenlegi mentése egyéniként</button>
+      <div class="test-hint">A presetek a beállított Szolga-számot töltik fel. Az árakat az élő modell-listából veszi.</div>
     </div>
 
     <div class="fg">
@@ -1266,10 +1285,11 @@ function chooseModel(id){
   const i=mpTargetIdx;
   $(`mi-${i}`).value=id;
   $(`mcp-${i}`).innerHTML=priceLabel(id);
-  if(!$(`mn-${i}`).value){            // auto-fill a friendly name from the id's last segment
-    const seg=id.split('/').pop().replace(/:free$/,'').replace(/[-_]/g,' ');
-    $(`mn-${i}`).value=seg.replace(/\b\w/g,c=>c.toUpperCase());
-  }
+  // always sync the display name to the newly chosen model
+  const seg=id.split('/').pop().replace(/:free$/,'').replace(/[-_]/g,' ');
+  $(`mn-${i}`).value=seg.replace(/\b\w/g,c=>c.toUpperCase());
+  const st=$(`mst-${i}`);
+  if(st){st.className='mstatus '+((modelStatus[id]?.state)||'');st.title=statusTitle(id);}
   closeModelPicker();
 }
 
@@ -1519,6 +1539,103 @@ function renderSessionList(){
 
 function openSessions(){renderSessionList();$('ss-ovl').classList.add('open');$('ss').classList.add('show');}
 function closeSessions(){$('ss-ovl').classList.remove('open');$('ss').classList.remove('show');}
+
+// ════════════════════════════════════════════════════════════
+// PRESETS — one-click model fills (free / cost-effective / custom)
+// ════════════════════════════════════════════════════════════
+const CUSTOM_PRESET_KEY='szolgatanacs-custom-preset';
+// current agent count from the slider if the panel is open, else saved cfg
+function liveCount(){const v=parseInt($('inp-cnt')?.value,10);return Number.isFinite(v)&&v>0?v:cfg.count;}
+// preference ordering so a free council gets strong, well-known families first
+const FAMILY_PREF=['deepseek','llama','gemini','qwen','mistral','gpt-oss','gemma','glm','nemotron','command'];
+function familyRank(id){
+  const s=id.toLowerCase();
+  const i=FAMILY_PREF.findIndex(f=>s.includes(f));
+  return i<0?FAMILY_PREF.length:i;
+}
+
+function freeCatalogModels(){return sortedModels().filter(r=>r.free);}
+function paidCatalogModels(){return sortedModels().filter(r=>!r.free);}  // already price-ascending
+
+// build cfg.models from a list of ids, assigning default council roles + names
+function applyModelIds(ids){
+  const models=ids.slice(0,liveCount()).map((id,i)=>{
+    const seg=id.split('/').pop().replace(/:free$/,'').replace(/[-_]/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+    return {name:seg, id, role:DEFAULT_ROLES[i]||'none', roleCustom:''};
+  });
+  for(let i=0;i<liveCount();i++)cfg.models[i]=models[i]||{name:'',id:'',role:DEFAULT_ROLES[i]||'none',roleCustom:''};
+  renderMCList(liveCount());
+}
+
+async function ensurePricing(){
+  if(pricingLoaded)return true;
+  toast_show('Modell-lista betöltése…');
+  await loadPricing();
+  return pricingLoaded;
+}
+
+async function presetFree(){
+  if(!(await ensurePricing())){toast_show('Nem sikerült betölteni a modell-listát (internet szükséges)');return;}
+  // exclude known-down; prefer ok > unknown; within that, strong families first
+  let free=freeCatalogModels().filter(r=>modelStatus[r.id]?.state!=='down');
+  free.sort((a,b)=>{
+    const sa=modelStatus[a.id]?.state==='ok'?0:1, sb=modelStatus[b.id]?.state==='ok'?0:1;
+    return sa-sb || familyRank(a.id)-familyRank(b.id) || a.id.localeCompare(b.id);
+  });
+  if(free.length<liveCount()){
+    toast_show(`Csak ${free.length} elérhető ingyenes modell van, de ${liveCount()} Szolga kell — csökkentsd a Szolgák számát vagy válassz fizetőst`);
+    return;
+  }
+  applyModelIds(free.map(r=>r.id));
+  toast_show(`Ingyenes preset betöltve — ${liveCount()} ingyenes Szolga ✓`);
+}
+
+async function presetCheap(){
+  if(!(await ensurePricing())){toast_show('Nem sikerült betölteni a modell-listát (internet szükséges)');return;}
+  const paid=paidCatalogModels().filter(r=>modelStatus[r.id]?.state!=='down');
+  if(paid.length<liveCount()){toast_show('Nincs elég modell a listában');return;}
+  const pick=paid.slice(0,liveCount());
+  applyModelIds(pick.map(r=>r.id));
+  const max=pick[pick.length-1];
+  toast_show(`Költséghatékony preset betöltve — legdrágább: $${max.perM.toFixed(2)}/M ✓`);
+}
+
+function loadCustomPreset(){try{return JSON.parse(localStorage.getItem(CUSTOM_PRESET_KEY)||'null');}catch{return null;}}
+function presetCustomApply(){
+  const cp=loadCustomPreset();
+  if(!cp||!cp.length){toast_show('Még nincs egyéni preset — állítsd be a modelleket, majd „Jelenlegi mentése egyéniként”');return;}
+  for(let i=0;i<liveCount();i++)cfg.models[i]=cp[i]?{...cp[i]}:{name:'',id:'',role:DEFAULT_ROLES[i]||'none',roleCustom:''};
+  renderMCList(liveCount());
+  toast_show('Egyéni preset betöltve ✓');
+}
+function presetCustomSave(){
+  // snapshot current card inputs
+  const arr=[];
+  for(let i=0;i<liveCount();i++){
+    arr.push({name:$(`mn-${i}`)?.value.trim()||'', id:$(`mi-${i}`)?.value.trim()||'', role:$(`mr-${i}`)?.value||'none', roleCustom:$(`mrc-${i}`)?.value.trim()||''});
+  }
+  if(!arr.some(m=>m.id)){toast_show('Nincs mentendő modell');return;}
+  try{localStorage.setItem(CUSTOM_PRESET_KEY,JSON.stringify(arr));toast_show(`Egyéni preset elmentve (${arr.filter(m=>m.id).length} modell) ✓`);refreshPresetState();}
+  catch{toast_show('Mentés sikertelen');}
+}
+
+// enable/disable + hint the preset buttons based on current count and catalog
+function refreshPresetState(){
+  const free=$('ps-free'), cheap=$('ps-cheap'), custom=$('ps-custom');
+  if(!free)return;
+  if(pricingLoaded){
+    const nFree=freeCatalogModels().length;
+    const enough=nFree>=liveCount();
+    free.classList.toggle('ps-ready',enough);
+    free.classList.toggle('ps-short',!enough);
+    free.title=enough?`${nFree} ingyenes modell elérhető`:`Csak ${nFree} ingyenes modell — ${liveCount()} kell`;
+  }else{
+    free.title='Kattints a betöltéshez';
+  }
+  const cp=loadCustomPreset();
+  custom.classList.toggle('ps-ready',!!(cp&&cp.length));
+  custom.title=(cp&&cp.length)?`Egyéni preset: ${cp.filter(m=>m.id).length} modell`:'Még nincs egyéni preset elmentve';
+}
 
 // ════════════════════════════════════════════════════════════
 // AGENT EXECUTOR
@@ -2054,6 +2171,8 @@ function openPanel(){
   $('inp-convth').value=cfg.council.convergenceThreshold; $('convth-val').textContent=cfg.council.convergenceThreshold.toFixed(2);
   renderConsensusOptions();
   renderMCList(cfg.count);
+  refreshPresetState();
+  if(!pricingLoaded)loadPricing().then(refreshPresetState);
   panel.classList.add('open');
   ovl.classList.add('open');
 }
@@ -2286,6 +2405,7 @@ $('inp-cnt').addEventListener('input',()=>{
   cntVal.textContent=inpCnt.value;
   renderMCList(parseInt(inpCnt.value));
   renderConsensusOptions();
+  refreshPresetState();
 });
 
 $('inp-rounds').addEventListener('input',()=>{$('rounds-val').textContent=$('inp-rounds').value;});
@@ -2306,6 +2426,10 @@ $('btn-sessions').addEventListener('click',openSessions);
 $('ss-close').addEventListener('click',closeSessions);
 $('ss-ovl').addEventListener('click',closeSessions);
 $('ss-save').addEventListener('click',saveSession);
+$('ps-free').addEventListener('click',presetFree);
+$('ps-cheap').addEventListener('click',presetCheap);
+$('ps-custom').addEventListener('click',presetCustomApply);
+$('ps-save').addEventListener('click',presetCustomSave);
 $('cf-yes').addEventListener('click',()=>resolvePaid(true));
 $('cf-no').addEventListener('click',()=>resolvePaid(false));
 $('cf-ovl').addEventListener('click',()=>resolvePaid(false));$('mp-ovl').addEventListener('click',closeModelPicker);
