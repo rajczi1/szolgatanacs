@@ -223,6 +223,34 @@ input[type=range]::-moz-range-thumb{width:15px;height:15px;border:none;border-ra
 .mcprice.free{color:var(--green)}
 .mcprice-row{min-height:12px;margin-top:-2px}
 
+/* MODEL PICKER */
+.mpick{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(.97);width:min(560px,92vw);max-height:82vh;background:var(--s1);border:1px solid var(--b2);border-radius:var(--rl);z-index:320;display:flex;flex-direction:column;opacity:0;pointer-events:none;transition:opacity .16s,transform .16s;box-shadow:0 24px 80px rgba(0,0,0,.6)}
+.mpick.show{opacity:1;pointer-events:auto;transform:translate(-50%,-50%) scale(1)}
+#mp-ovl{z-index:310}
+.mp-head{display:flex;align-items:center;justify-content:space-between;padding:15px 18px;border-bottom:1px solid var(--b1)}
+.mp-title{font-family:var(--fd);font-size:14px;font-weight:700;letter-spacing:.04em;color:var(--t1)}
+.mp-tools{padding:13px 18px 8px;display:flex;flex-direction:column;gap:10px}
+.mp-filters{display:flex;gap:6px}
+.mp-fbtn{flex:1;background:var(--s2);border:1px solid var(--b2);color:var(--t2);font-family:var(--fd);font-size:11px;font-weight:600;letter-spacing:.04em;padding:7px 0;border-radius:var(--r);cursor:pointer;transition:all .15s}
+.mp-fbtn:hover{color:var(--t1);border-color:var(--b3)}
+.mp-fbtn.active{background:var(--t1);color:var(--bg);border-color:var(--t1)}
+.mp-legend{display:flex;align-items:center;gap:8px;padding:2px 18px 10px;font-family:var(--fm);font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:.1em}
+.mp-grad{flex:1;height:5px;border-radius:3px;background:linear-gradient(90deg,hsl(140 55% 45%),hsl(70 60% 48%),hsl(35 75% 52%),hsl(0 70% 52%))}
+.mp-list{flex:1;overflow-y:auto;padding:4px 10px 10px}
+.mp-row{display:flex;align-items:center;gap:11px;padding:9px 10px;border-radius:var(--rm);cursor:pointer;transition:background .12s}
+.mp-row:hover{background:var(--s2)}
+.mp-bar{width:4px;align-self:stretch;min-height:26px;border-radius:3px;flex-shrink:0}
+.mp-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.mp-id{font-family:var(--fm);font-size:11.5px;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mp-price{font-family:var(--fm);font-size:9.5px;color:var(--t3)}
+.mp-price.free{color:var(--green)}
+.mp-empty{padding:30px 18px;text-align:center;color:var(--t3);font-family:var(--fm);font-size:11px}
+.mp-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 18px;border-top:1px solid var(--b1);font-family:var(--fm);font-size:9px;color:var(--t3);letter-spacing:.06em}
+.mp-hint{text-align:right;opacity:.8}
+.mcbrowse{width:100%;background:var(--s2);border:1px solid var(--b2);color:var(--t2);font-family:var(--fd);font-size:11px;font-weight:600;letter-spacing:.04em;padding:8px 0;border-radius:var(--r);cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:7px}
+.mcbrowse:hover{color:var(--t1);border-color:var(--b3);background:var(--s3)}
+.mcbrowse svg{width:13px;height:13px}
+
 /* MODEL QUICK-PICK DROPDOWN */
 .qpick{background:var(--s3);border:1px solid var(--b2);border-radius:var(--r);padding:9px 11px;color:var(--t2);font-family:var(--fm);font-size:11px;outline:none;width:100%;cursor:pointer;transition:border-color .15s}
 .qpick:focus{border-color:var(--b3)}
@@ -432,11 +460,31 @@ input[type=range]::-moz-range-thumb{width:15px;height:15px;border:none;border-ra
   </div>
 </div>
 
+<!-- MODEL PICKER -->
+<div class="ovl" id="mp-ovl"></div>
+<div class="mpick" id="mp">
+  <div class="mp-head">
+    <div class="mp-title">Modell kiválasztása</div>
+    <button class="ibt" id="mp-close" title="Bezárás"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+  </div>
+  <div class="mp-tools">
+    <input type="text" class="finp" id="mp-search" placeholder="Keresés (pl. deepseek, gemini, claude)…" autocomplete="off">
+    <div class="mp-filters" role="group">
+      <button class="mp-fbtn active" data-filter="all">Mind</button>
+      <button class="mp-fbtn" data-filter="free">Ingyenes</button>
+      <button class="mp-fbtn" data-filter="paid">Fizetős</button>
+    </div>
+  </div>
+  <div class="mp-legend"><span>olcsóbb</span><div class="mp-grad"></div><span>drágább</span></div>
+  <div class="mp-list" id="mp-list"></div>
+  <div class="mp-foot"><span id="mp-count"></span><span class="mp-hint">a sáv színe az árszintet jelzi · ár / millió token (be+ki)</span></div>
+</div>
+
 <div id="toast"></div>
 
 <script>
 // ════════════════════════════════════════════════════════════
-// CONSTANTS: PRESETS, QUICKPICK, ROLES, IDENTITY
+// CONSTANTS: PRESETS, ROLES, IDENTITY
 // ════════════════════════════════════════════════════════════
 const PRESETS = [
   {name:'GPT-4o',         id:'openai/gpt-4o'},
@@ -449,30 +497,6 @@ const PRESETS = [
   {name:'Grok-3 Beta',    id:'x-ai/grok-3-beta'},
 ];
 
-const QUICKPICK = [
-  {label:'— Válasszon modellt —', id:''},
-  {label:'openai/gpt-4o', id:'openai/gpt-4o'},
-  {label:'openai/gpt-4o-mini', id:'openai/gpt-4o-mini'},
-  {label:'openai/o3-mini', id:'openai/o3-mini'},
-  {label:'anthropic/claude-opus-4', id:'anthropic/claude-opus-4'},
-  {label:'anthropic/claude-sonnet-4-5', id:'anthropic/claude-sonnet-4-5'},
-  {label:'anthropic/claude-3.5-haiku', id:'anthropic/claude-3.5-haiku'},
-  {label:'google/gemini-2.5-pro-preview', id:'google/gemini-2.5-pro-preview'},
-  {label:'google/gemini-2.0-flash-001', id:'google/gemini-2.0-flash-001'},
-  {label:'meta-llama/llama-4-maverick', id:'meta-llama/llama-4-maverick'},
-  {label:'meta-llama/llama-4-scout', id:'meta-llama/llama-4-scout'},
-  {label:'meta-llama/llama-3.3-70b-instruct', id:'meta-llama/llama-3.3-70b-instruct'},
-  {label:'deepseek/deepseek-r1', id:'deepseek/deepseek-r1'},
-  {label:'deepseek/deepseek-chat-v3-0324', id:'deepseek/deepseek-chat-v3-0324'},
-  {label:'mistralai/mistral-large-2411', id:'mistralai/mistral-large-2411'},
-  {label:'mistralai/codestral-2501', id:'mistralai/codestral-2501'},
-  {label:'qwen/qwq-32b', id:'qwen/qwq-32b'},
-  {label:'qwen/qwen-2.5-72b-instruct', id:'qwen/qwen-2.5-72b-instruct'},
-  {label:'x-ai/grok-3-beta', id:'x-ai/grok-3-beta'},
-  {label:'cohere/command-r-plus-08-2024', id:'cohere/command-r-plus-08-2024'},
-  {label:'perplexity/sonar-pro', id:'perplexity/sonar-pro'},
-  {label:'nvidia/llama-3.1-nemotron-ultra-253b-v1', id:'nvidia/llama-3.1-nemotron-ultra-253b-v1'},
-];
 
 // Role registry — key: { label, guidance }
 const ROLES = {
@@ -1106,6 +1130,80 @@ function priceLabel(id){
 }
 
 // ════════════════════════════════════════════════════════════
+// MODEL PICKER — searchable, price-sorted list with green→red color coding
+// ════════════════════════════════════════════════════════════
+let mpTargetIdx=null;          // which model card the picker fills
+let mpFilter='all';
+
+// per-million combined price (prompt+completion); free = 0
+function modelCombinedPrice(p){return (p.prompt+p.completion)*1e6;}
+
+// price → hue (green 140° … red 0°), log-scaled between ~$0.1/M and ~$30/M; free pinned green
+function priceColor(perM){
+  if(perM<=0)return 'hsl(145 55% 45%)';
+  const lo=Math.log(0.1), hi=Math.log(30);
+  let t=(Math.log(Math.max(perM,0.02))-lo)/(hi-lo);
+  t=Math.min(1,Math.max(0,t));
+  const hue=140*(1-t);
+  return `hsl(${hue.toFixed(0)} ${(60-t*8).toFixed(0)}% ${(48-t*4).toFixed(0)}%)`;
+}
+
+function sortedModels(){
+  return Object.entries(modelPricing)
+    .map(([id,p])=>({id,perM:modelCombinedPrice(p),free:p.prompt===0&&p.completion===0}))
+    .sort((a,b)=>a.perM-b.perM||a.id.localeCompare(b.id));
+}
+
+function renderModelPickerList(){
+  const list=$('mp-list'), q=$('mp-search').value.trim().toLowerCase();
+  if(!pricingLoaded){list.innerHTML='<div class="mp-empty">Árlista betöltése folyamatban… próbáld újra pár másodperc múlva (internetkapcsolat szükséges).</div>';$('mp-count').textContent='';return;}
+  let rows=sortedModels();
+  if(mpFilter==='free')rows=rows.filter(r=>r.free);
+  else if(mpFilter==='paid')rows=rows.filter(r=>!r.free);
+  if(q)rows=rows.filter(r=>r.id.toLowerCase().includes(q));
+  $('mp-count').textContent=`${rows.length} modell`;
+  if(!rows.length){list.innerHTML='<div class="mp-empty">Nincs találat.</div>';return;}
+  list.innerHTML=rows.map(r=>{
+    const price=r.free?'<span class="mp-price free">ingyenes</span>'
+      :`<span class="mp-price">$${r.perM.toFixed(2)} / M token</span>`;
+    return `<div class="mp-row" data-id="${esc(r.id)}">`+
+      `<div class="mp-bar" style="background:${priceColor(r.perM)}"></div>`+
+      `<div class="mp-info"><span class="mp-id">${esc(r.id)}</span>${price}</div></div>`;
+  }).join('');
+  list.querySelectorAll('.mp-row').forEach(row=>row.addEventListener('click',()=>chooseModel(row.dataset.id)));
+}
+
+function openModelPicker(idx){
+  mpTargetIdx=idx;
+  $('mp-search').value='';
+  mpFilter='all';
+  $('mp').querySelectorAll('.mp-fbtn').forEach(b=>b.classList.toggle('active',b.dataset.filter==='all'));
+  renderModelPickerList();
+  $('mp-ovl').classList.add('open');
+  $('mp').classList.add('show');
+  setTimeout(()=>$('mp-search').focus(),60);
+  if(!pricingLoaded)loadPricing().then(()=>{if($('mp').classList.contains('show'))renderModelPickerList();});
+}
+
+function closeModelPicker(){
+  $('mp-ovl').classList.remove('open');
+  $('mp').classList.remove('show');
+  mpTargetIdx=null;
+}
+
+function chooseModel(id){
+  if(mpTargetIdx==null)return;
+  const i=mpTargetIdx;
+  $(`mi-${i}`).value=id;
+  $(`mcp-${i}`).innerHTML=priceLabel(id);
+  if(!$(`mn-${i}`).value){            // auto-fill a friendly name from the id's last segment
+    const seg=id.split('/').pop().replace(/:free$/,'').replace(/[-_]/g,' ');
+    $(`mn-${i}`).value=seg.replace(/\b\w/g,c=>c.toUpperCase());
+  }
+  closeModelPicker();
+}
+
+// ════════════════════════════════════════════════════════════
 // AGENT EXECUTOR
 // ════════════════════════════════════════════════════════════
 // Pure transport: fetch + SSE parse. Calls callbacks; returns {content,tokens,durationMs}.
@@ -1623,26 +1721,18 @@ function renderMCList(n){
     const m=cfg.models[i]||PRESETS[i]||{name:'',id:'',role:'none',roleCustom:''};
     const d=document.createElement('div');
     d.className='mci';
-    const qopts=QUICKPICK.map(q=>`<option value="${esc(q.id)}" ${q.id===m.id?'selected':''}>${esc(q.label)}</option>`).join('');
     d.innerHTML=`
       <div class="mcidx"><span class="mcnum">${i+1}</span><span>Modell ${i+1}</span></div>
       <input type="text" class="finp" id="mn-${i}" placeholder="Megjelenítési név (pl. GPT-4o)" value="${esc(m.name)}">
       <input type="text" class="finp" id="mi-${i}" placeholder="Model ID (pl. openai/gpt-4o)" value="${esc(m.id)}">
-      <select class="qpick" id="mq-${i}" title="Gyors választás"><optgroup label="Gyors modell választás">${qopts}</optgroup></select>
+      <button class="mcbrowse" id="mb-${i}" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>Modellek böngészése</button>
       <div class="mcprice-row" id="mcp-${i}">${priceLabel(m.id)}</div>
       <div class="mcrlbl">Szerep a tanácsban</div>
       <select class="qpick" id="mr-${i}">${roleOpts}</select>
       <input type="text" class="finp" id="mrc-${i}" placeholder="Egyéni szerep (opcionális — felülírja a fentit)" value="${esc(m.roleCustom||'')}">`;
     mclist.appendChild(d);
     $(`mr-${i}`).value=(m.role&&ROLES[m.role])?m.role:'none';
-    $(`mq-${i}`).addEventListener('change',()=>{
-      const v=$(`mq-${i}`).value;
-      if(!v)return;
-      $(`mi-${i}`).value=v;
-      $(`mcp-${i}`).innerHTML=priceLabel(v);
-      const preset=QUICKPICK.find(q=>q.id===v);
-      if(preset&&!$(`mn-${i}`).value)$(`mn-${i}`).value=preset.label;
-    });
+    $(`mb-${i}`).addEventListener('click',()=>openModelPicker(i));
     $(`mi-${i}`).addEventListener('input',()=>{$(`mcp-${i}`).innerHTML=priceLabel($(`mi-${i}`).value.trim());});
   }
 }
@@ -1844,6 +1934,17 @@ $('set-conv-off').addEventListener('click',()=>setTog('set-conv-on','set-conv-of
 
 $('ktog').addEventListener('click',()=>{inpKey.type=inpKey.type==='password'?'text':'password';});
 $('rq').addEventListener('change',()=>{const v=$('rq').value;if(v)$('inp-reader').value=v;});
+
+// Model picker
+$('mp-close').addEventListener('click',closeModelPicker);
+$('mp-ovl').addEventListener('click',closeModelPicker);
+$('mp-search').addEventListener('input',renderModelPickerList);
+$('mp').querySelectorAll('.mp-fbtn').forEach(btn=>btn.addEventListener('click',()=>{
+  mpFilter=btn.dataset.filter;
+  $('mp').querySelectorAll('.mp-fbtn').forEach(b=>b.classList.toggle('active',b===btn));
+  renderModelPickerList();
+}));
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('mp').classList.contains('show'))closeModelPicker();});
 
 // Document attach
 $('btn-attach').addEventListener('click',()=>$('doc-input').click());
