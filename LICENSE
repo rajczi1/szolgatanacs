@@ -1,0 +1,57 @@
+Szolga Tanács
+Copyright (c) 2026 Rajczi András. Minden jog fenntartva. / All Rights Reserved.
+
+────────────────────────────────────────────────────────────
+MAGYAR
+────────────────────────────────────────────────────────────
+
+Ez a szoftver és a hozzá tartozó forráskód Rajczi András (a továbbiakban:
+"a Szerző") kizárólagos szellemi tulajdona. Minden jog fenntartva.
+
+A jelen tárolóban közzétett kód megtekinthető, de a Szerző írásos, kifejezett
+engedélye nélkül TILOS:
+
+  1. a kód vagy bármely részének felhasználása, futtatása éles/üzleti
+     környezetben;
+  2. a kód másolása, terjesztése, közzététele vagy nyilvános hozzáférhetővé
+     tétele bármilyen formában;
+  3. a kódból származékos mű létrehozása, módosítása és terjesztése;
+  4. a kód értékesítése, licencbe adása vagy más módon történő hasznosítása;
+  5. a szerzői feltüntetés (copyright) eltávolítása vagy megváltoztatása.
+
+A kód megtekintése (pl. a GitHubon való olvasása) nem keletkeztet semmilyen
+felhasználási jogot. A fenti tilalmak alóli bármely felmentés kizárólag a
+Szerző előzetes, írásos hozzájárulásával érvényes.
+
+A szoftvert a Szerző " AHOGY VAN " állapotban bocsátja rendelkezésre, mindenféle
+— kifejezett vagy hallgatólagos — szavatosság nélkül. A Szerző nem felel a
+szoftver használatából eredő semmilyen kárért.
+
+Kapcsolat engedélykéréshez: Rajczi András.
+
+────────────────────────────────────────────────────────────
+ENGLISH
+────────────────────────────────────────────────────────────
+
+This software and its source code are the exclusive intellectual property of
+Rajczi András ("the Author"). All rights reserved.
+
+The code published in this repository may be viewed, but WITHOUT the Author's
+express written permission it is PROHIBITED to:
+
+  1. use or run the code, in whole or in part, in any production or
+     business environment;
+  2. copy, distribute, publish, or otherwise make the code publicly available
+     in any form;
+  3. create derivative works from, modify, or distribute the code;
+  4. sell, sublicense, or otherwise commercially exploit the code;
+  5. remove or alter the copyright notice.
+
+Viewing the code (e.g. reading it on GitHub) grants no usage rights whatsoever.
+Any exception to the above requires the Author's prior written consent.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED. THE AUTHOR SHALL NOT BE LIABLE FOR ANY DAMAGES ARISING FROM THE USE
+OF THIS SOFTWARE.
+
+For permission requests, contact: Rajczi András.

@@ -1,0 +1,1914 @@
+<!DOCTYPE html>
+<!--
+  ════════════════════════════════════════════════════════════
+  Szolga Tanács — többügynökös AI tanácskozó eszköz
+  © 2026 Rajczi András. Minden jog fenntartva.
+  Made by Rajczi András. Ez a szoftver a szerző saját tulajdona.
+  ════════════════════════════════════════════════════════════
+-->
+<html lang="hu">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Szolga Tanács</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<!-- Document parsing (loaded from CDN; used only when a file is attached) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  /* Szolga Tanács — neutral black base, white + grey */
+  --bg:#0A0A0B;--s0:#0D0D0E;--s1:#141416;--s2:#1B1B1E;--s3:#242428;
+  --b1:#202022;--b2:#2D2D31;--b3:#41414A;
+  --t1:#F3F4F6;--t2:#B4B7BD;--t3:#74777E;--t4:#303034;
+  --green:#3FC9A6;--red:#E8736F;
+  /* accent: light silver-grey — reuses the --gold hooks so every existing reference recolors */
+  --ac:#C4C8CE;--gold:#C4C8CE;--gold-dim:rgba(196,200,206,.34);
+  --fd:'Sora',sans-serif;--fb:'Outfit',sans-serif;--fm:'JetBrains Mono',monospace;
+  --r:5px;--rm:7px;--rl:10px
+}
+html,body{height:100%;overflow-x:hidden}
+body{background:var(--bg);color:var(--t1);font-family:var(--fb);font-size:14px;line-height:1.6}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 60% 50% at 12% 8%,rgba(196,200,206,.04) 0%,transparent 60%),radial-gradient(ellipse 55% 45% at 92% 96%,rgba(196,200,206,.03) 0%,transparent 60%);pointer-events:none;z-index:0}
+.app{min-height:100vh;display:flex;flex-direction:column;position:relative;z-index:1}
+
+/* HEADER */
+header{display:flex;align-items:center;justify-content:flex-end;min-height:72px;padding:14px 24px;border-bottom:1px solid var(--b1);background:rgba(10,10,11,.92);backdrop-filter:blur(12px);position:sticky;top:0;z-index:20;overflow:hidden}
+header::before{content:'';position:absolute;left:0;top:0;width:72px;height:3px;background:var(--ac);clip-path:polygon(0 0,100% 0,calc(100% - 10px) 100%,0 100%)}
+header::after{content:'';position:absolute;right:0;bottom:0;width:120px;height:1px;background:linear-gradient(90deg,transparent,var(--ac));opacity:.35}
+.logo{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;text-align:center;gap:0;pointer-events:none}
+.logo-main{font-family:var(--fd);font-size:25px;font-weight:800;letter-spacing:.1em;color:var(--t1);line-height:1;text-indent:.1em}
+.logo-sub{font-family:var(--fm);font-size:9px;font-weight:400;letter-spacing:.18em;color:var(--t3);margin-top:8px;text-indent:.18em}
+.hdr-right{display:flex;align-items:center;gap:6px}
+.ibt{background:var(--s1);border:1px solid var(--b2);color:var(--t3);width:34px;height:34px;border-radius:var(--r);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.ibt:hover{color:var(--t2);border-color:var(--b3);background:var(--s2)}
+.ibt svg{width:15px;height:15px;flex-shrink:0}
+
+/* HEADER ROUND BADGE */
+.roundbadge{display:none;align-items:center;gap:8px;font-family:var(--fm);font-size:10px;color:var(--t2);background:var(--s1);border:1px solid var(--b2);border-radius:var(--r);padding:7px 12px;margin-right:6px;letter-spacing:.04em}
+.roundbadge.show{display:inline-flex}
+.roundbadge .rb-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:dpulse 1.2s ease-in-out infinite}
+.roundbadge.done .rb-dot{background:var(--t3);animation:none}
+.roundbadge.converged .rb-dot{background:var(--gold);animation:none}
+
+/* MAIN */
+main{flex:1;padding:24px;display:flex;flex-direction:column;gap:22px;max-width:1600px;width:100%;margin:0 auto}
+.sec-label{font-family:var(--fd);font-size:10px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--t3);display:inline-flex;align-items:center;gap:9px}
+.sec-label::before{content:'';width:15px;height:8px;flex-shrink:0;background:var(--ac);clip-path:polygon(34% 0,100% 0,66% 100%,0 100%)}
+
+/* PROMPT */
+.prompt-wrap{display:flex;flex-direction:column;gap:8px}
+.pbox{background:var(--s1);border:1px solid var(--b2);border-radius:var(--rm);overflow:hidden;transition:border-color .2s}
+.pbox:focus-within{border-color:var(--b3)}
+textarea#prompt{display:block;width:100%;min-height:96px;background:transparent;border:none;outline:none;padding:14px 16px;color:var(--t1);font-family:var(--fb);font-size:14px;font-weight:300;line-height:1.75;resize:vertical}
+textarea#prompt::placeholder{color:var(--t4)}
+.pbar{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-top:1px solid var(--b1);gap:12px;flex-wrap:wrap}
+.pbar-left{display:flex;align-items:center;gap:14px}
+.pmeta{font-family:var(--fm);font-size:10px;color:var(--t3);white-space:nowrap}
+.pacts{display:flex;gap:6px;align-items:center}
+
+/* MODE TOGGLE */
+.modetog{display:inline-flex;background:var(--s2);border:1px solid var(--b2);border-radius:var(--r);padding:2px;gap:2px}
+.modebtn{background:transparent;border:1px solid transparent;color:var(--t3);font-family:var(--fd);font-size:10.5px;font-weight:500;letter-spacing:.06em;padding:5px 13px;border-radius:6px;cursor:pointer;transition:all .15s}
+.modebtn:hover{color:var(--t2)}
+.modebtn.active{background:var(--s3);color:var(--t1);border-color:var(--b3)}
+.modebtn.active#mode-council{color:var(--gold)}
+
+/* BUTTONS */
+.btn{padding:7px 16px;border-radius:var(--r);font-family:var(--fb);font-size:12px;font-weight:500;cursor:pointer;border:1px solid transparent;transition:all .15s;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.btn-p{background:var(--t1);color:var(--bg);border-color:var(--t1)}
+.btn-p:hover{background:#e9e9ec;border-color:#e9e9ec}
+.btn-p:disabled{opacity:.3;cursor:not-allowed}
+.btn-g{background:transparent;color:var(--t2);border-color:var(--b2)}
+.btn-g:hover{color:var(--t1);border-color:var(--b3);background:var(--s2)}
+.btn-g:disabled{opacity:.4;cursor:not-allowed}
+kbd{font-family:var(--fm);font-size:9px;background:var(--s2);border:1px solid var(--b3);border-radius:4px;padding:1px 5px;color:var(--t3)}
+
+/* RESPONSE SECTION */
+.res-sect{display:flex;flex-direction:column;gap:10px}
+.sec-row{display:flex;align-items:center;justify-content:space-between}
+.tally{font-family:var(--fm);font-size:10px;color:var(--t3)}
+#grid{display:grid;gap:13px;grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
+
+/* CARD */
+.card{background:var(--s1);border:1px solid var(--b1);border-radius:var(--rm);display:flex;flex-direction:column;min-height:210px;overflow:hidden;transition:border-color .3s;position:relative}
+@keyframes spulse{0%,100%{border-color:var(--b2)}50%{border-color:rgba(196,200,206,.5)}}
+.card.streaming{animation:spulse 2.2s ease-in-out infinite}
+.card.errored{border-color:rgba(232,115,111,.28)}
+.card-head{display:flex;align-items:center;justify-content:space-between;padding:10px 13px;border-bottom:1px solid var(--b1);background:var(--s2);gap:10px;position:relative}
+.card-head::before{content:'';position:absolute;left:0;top:0;width:38px;height:2px;background:var(--b3);clip-path:polygon(0 0,100% 0,calc(100% - 7px) 100%,0 100%);transition:background .3s}
+.card.streaming .card-head::before{background:var(--ac)}
+.card.errored .card-head::before{background:var(--red)}
+.card-info{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
+.sdot{width:6px;height:6px;border-radius:50%;background:var(--t4);flex-shrink:0;transition:background .2s}
+.sdot.active{background:var(--green);animation:dpulse 1.2s ease-in-out infinite}
+.sdot.wait{background:var(--t3);animation:dpulse 1.6s ease-in-out infinite}
+.sdot.error{background:var(--red)}
+@keyframes dpulse{0%,100%{opacity:1}50%{opacity:.2}}
+.card-names{min-width:0}
+.card-nm{font-family:var(--fd);font-size:12px;font-weight:500;letter-spacing:.06em;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card-mid{font-family:var(--fm);font-size:9.5px;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card-acts{display:flex;gap:4px;flex-shrink:0}
+.cbt{background:transparent;border:1px solid var(--b2);color:var(--t3);width:26px;height:26px;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.cbt:hover{color:var(--t1);border-color:var(--b3);background:var(--s3)}
+.cbt svg{width:12px;height:12px}
+.card-body{flex:1;padding:13px 15px;overflow-y:auto;max-height:360px;scroll-behavior:smooth}
+.council .card-body{max-height:440px}
+.card-body::-webkit-scrollbar{width:3px}
+.card-body::-webkit-scrollbar-thumb{background:var(--b2);border-radius:2px}
+.placeholder{min-height:140px;display:flex;align-items:center;justify-content:center;font-family:var(--fm);font-size:11px;color:var(--t4);letter-spacing:.1em}
+.dots span{animation:ds 1.2s ease-in-out infinite;color:var(--t3);font-size:20px;line-height:1}
+.dots span:nth-child(2){animation-delay:.2s}
+.dots span:nth-child(3){animation-delay:.4s}
+@keyframes ds{0%,80%,100%{opacity:.15}40%{opacity:1}}
+.rtext{font-family:var(--fm);font-size:12px;font-weight:300;line-height:1.85;color:var(--t1);white-space:pre-wrap;word-break:break-word}
+.rerr{font-family:var(--fm);font-size:11px;color:var(--red);line-height:1.6}
+.cur{display:inline-block;width:2px;height:13px;background:var(--t1);margin-left:1px;vertical-align:text-bottom;animation:cb 1s step-end infinite}
+@keyframes cb{0%,100%{opacity:1}50%{opacity:0}}
+.card-foot{padding:7px 13px;border-top:1px solid var(--b1);display:flex;align-items:center;justify-content:space-between}
+.cchars{font-family:var(--fm);font-size:9.5px;color:var(--t3)}
+.cstat{font-family:var(--fm);font-size:9.5px;color:var(--t3)}
+.cstat.active{color:var(--green)}
+.cstat.error{color:var(--red)}
+
+/* ROLE BADGE */
+.rolebadge{display:none;align-items:center;font-family:var(--fd);font-size:8.5px;font-weight:500;letter-spacing:.07em;text-transform:uppercase;padding:2px 7px;border-radius:5px;background:var(--s3);color:var(--t3);border:1px solid var(--b2);white-space:nowrap;margin-top:4px;width:max-content;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.council .rolebadge{display:inline-flex}
+.rolebadge.architect{color:var(--green);border-color:rgba(63,201,166,.28);background:rgba(63,201,166,.07)}
+.rolebadge.critic{color:var(--red);border-color:rgba(232,115,111,.28);background:rgba(232,115,111,.07)}
+.rolebadge.devil{color:var(--red);border-color:rgba(232,115,111,.22);background:rgba(232,115,111,.05)}
+.rolebadge.summarizer{color:var(--gold);border-color:var(--gold-dim);background:rgba(196,200,206,.08)}
+
+/* ROUND DIVIDERS IN CARD BODY */
+.rounddiv{display:flex;align-items:center;gap:9px;margin:16px 0 10px;user-select:none}
+.rounddiv:first-child{margin-top:0}
+.rounddiv::before,.rounddiv::after{content:'';flex:1;height:1px;background:var(--b2)}
+.rounddiv-l{font-family:var(--fd);font-size:9px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--t3);white-space:nowrap}
+.rdur{font-family:var(--fm);font-size:8px;color:var(--t4)}
+
+/* SUMMARY CARD */
+.sumcard{grid-column:1 / -1;border-color:var(--gold-dim);background:linear-gradient(180deg,rgba(196,200,206,.06),transparent 150px),var(--s1);position:relative}
+.sumcard::before{content:'';position:absolute;top:0;left:0;border-top:20px solid var(--ac);border-right:20px solid transparent;z-index:3}
+.sum-head{background:rgba(196,200,206,.05);border-bottom-color:var(--gold-dim)!important}
+.sum-mark{color:var(--gold);font-size:13px;flex-shrink:0}
+.sumcard .card-nm{color:var(--gold);letter-spacing:.14em}
+.sum-body{padding:18px 22px;max-height:none!important;overflow:visible}
+.sum-h{font-family:var(--fd);font-size:13px;font-weight:600;letter-spacing:.04em;color:var(--gold);margin:20px 0 9px;padding-bottom:6px;border-bottom:1px solid var(--b1)}
+.sum-h:first-child{margin-top:0}
+.sum-p{font-family:var(--fb);font-size:13.5px;font-weight:300;line-height:1.72;color:var(--t1);margin:6px 0}
+.sum-p strong{color:var(--t1);font-weight:500}
+.sum-p em{color:var(--t2);font-style:italic}
+.sum-ul{margin:6px 0 6px 2px;list-style:none;display:flex;flex-direction:column;gap:6px}
+.sum-ul li{font-family:var(--fb);font-size:13.5px;font-weight:300;line-height:1.6;color:var(--t1);padding-left:17px;position:relative}
+.sum-ul li::before{content:'—';position:absolute;left:0;color:var(--gold);opacity:.55}
+.sum-p code,.sum-ul code{font-family:var(--fm);font-size:11.5px;background:var(--s3);padding:1px 5px;border-radius:4px;color:var(--green)}
+.sum-hr{border:none;border-top:1px solid var(--b1);margin:16px 0}
+.sum-sp{height:7px}
+
+/* STATUS BAR */
+.sbar{padding:5px 24px;border-top:1px solid var(--b1);display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.sbi{display:flex;align-items:center;gap:6px;font-family:var(--fm);font-size:9.5px;color:var(--t3)}
+.sbdot{width:4px;height:4px;border-radius:50%;background:currentColor}
+#sb-tokens,#sb-conv,#sb-mem{display:none}
+#sb-tokens.show,#sb-conv.show,#sb-mem.show{display:flex}
+#sb-tokens.warn{color:var(--red)}
+#sb-mem{cursor:pointer;transition:color .15s}
+#sb-mem:hover{color:var(--t1)}
+#sb-mem .sbdot{background:var(--ac)}
+
+/* OVERLAY + PANEL */
+.ovl{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:100;opacity:0;pointer-events:none;transition:opacity .2s}
+.ovl.open{opacity:1;pointer-events:all}
+.panel{position:fixed;top:0;right:0;width:410px;max-width:100vw;height:100vh;background:var(--s1);border-left:1px solid var(--b2);z-index:200;transform:translateX(100%);transition:transform .25s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column}
+.panel.open{transform:translateX(0)}
+.ph{display:flex;align-items:center;justify-content:space-between;padding:17px 22px;border-bottom:1px solid var(--b1);flex-shrink:0}
+.ptitle{font-family:var(--fd);font-size:13px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--t1)}
+.pbody{flex:1;overflow-y:auto;padding:22px;display:flex;flex-direction:column;gap:24px}
+.pbody::-webkit-scrollbar{width:3px}
+.pbody::-webkit-scrollbar-thumb{background:var(--b2);border-radius:2px}
+.pfoot{padding:15px 22px;border-top:1px solid var(--b1);display:flex;gap:8px;flex-shrink:0}
+.fg{display:flex;flex-direction:column;gap:10px}
+.fgl{font-family:var(--fd);font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:var(--t3);padding-bottom:8px;border-bottom:1px solid var(--b1)}
+.field{display:flex;flex-direction:column;gap:5px}
+.fieldrow{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.flbl{font-size:11px;font-weight:400;color:var(--t2)}
+.finp{background:var(--s3);border:1px solid var(--b2);border-radius:var(--r);padding:9px 11px;color:var(--t1);font-family:var(--fm);font-size:11px;outline:none;width:100%;transition:border-color .15s}
+.finp:focus{border-color:var(--b3)}
+.finp::placeholder{color:var(--t4)}
+.kwrap{position:relative}
+.ktog{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--t3);cursor:pointer;display:flex;align-items:center}
+.ktog svg{width:13px;height:13px}
+.kwrap .finp{padding-right:34px}
+.rwrap{display:flex;align-items:center;gap:12px}
+input[type=range]{flex:1;-webkit-appearance:none;height:3px;background:var(--b2);border-radius:2px;outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;border-radius:50%;background:var(--t1);cursor:pointer}
+input[type=range]::-moz-range-thumb{width:15px;height:15px;border:none;border-radius:50%;background:var(--t1);cursor:pointer}
+.rval{font-family:var(--fm);font-size:13px;color:var(--t1);min-width:34px;text-align:center}
+
+/* SETTINGS TOGGLE */
+.tog{display:inline-flex;background:var(--s2);border:1px solid var(--b2);border-radius:var(--r);padding:2px;gap:2px}
+.togbtn{background:transparent;border:none;color:var(--t3);font-family:var(--fb);font-size:11px;font-weight:500;padding:5px 15px;border-radius:6px;cursor:pointer;transition:all .15s}
+.togbtn.active{background:var(--s3);color:var(--t1)}
+.togbtn.active[data-v="on"]{color:var(--green)}
+
+#mclist{display:flex;flex-direction:column;gap:8px}
+.mci{background:var(--s2);border:1px solid var(--b1);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:7px}
+.mcidx{font-family:var(--fm);font-size:10px;color:var(--t3);display:flex;align-items:center;gap:6px}
+.mcnum{background:var(--b2);border-radius:4px;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--t2)}
+.mcrlbl{font-family:var(--fm);font-size:8.5px;color:var(--t3);letter-spacing:.12em;text-transform:uppercase;margin-top:2px}
+.mcprice{font-family:var(--fm);font-size:9px;color:var(--t3)}
+.mcprice.free{color:var(--green)}
+.mcprice-row{min-height:12px;margin-top:-2px}
+
+/* MODEL QUICK-PICK DROPDOWN */
+.qpick{background:var(--s3);border:1px solid var(--b2);border-radius:var(--r);padding:9px 11px;color:var(--t2);font-family:var(--fm);font-size:11px;outline:none;width:100%;cursor:pointer;transition:border-color .15s}
+.qpick:focus{border-color:var(--b3)}
+.qpick option{background:var(--s3)}
+
+/* TOAST */
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(8px);background:var(--s3);border:1px solid var(--b3);border-radius:var(--r);padding:9px 16px;font-family:var(--fm);font-size:11px;color:var(--t1);z-index:999;opacity:0;pointer-events:none;transition:all .2s;white-space:nowrap;max-width:90vw}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+#toast.gold{border-color:var(--gold-dim);color:var(--gold)}
+
+/* EMPTY STATE */
+.empty-grid{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 0;gap:10px;color:var(--t4)}
+.empty-grid svg{width:32px;height:32px;opacity:.5}
+.empty-grid p{font-family:var(--fm);font-size:11px;letter-spacing:.08em}
+
+/* ROLE BADGES — full set, muted to sit within the navy palette */
+.rolebadge.security{color:#D8AE63;border-color:rgba(216,174,99,.28);background:rgba(216,174,99,.07)}
+.rolebadge.sysadmin{color:#7FA8DB;border-color:rgba(127,168,219,.3);background:rgba(127,168,219,.07)}
+.rolebadge.cost{color:#74C58E;border-color:rgba(116,197,142,.28);background:rgba(116,197,142,.07)}
+.rolebadge.docs{color:#93A6BC;border-color:rgba(147,166,188,.28);background:rgba(147,166,188,.07)}
+.rolebadge.none{color:var(--t2)}
+
+/* DOCUMENT ATTACH */
+.attachbtn{background:var(--s2);border:1px solid var(--b2);color:var(--t3);width:30px;height:30px;border-radius:var(--r);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0}
+.attachbtn:hover{color:var(--t1);border-color:var(--b3);background:var(--s3)}
+.attachbtn svg{width:15px;height:15px}
+.docchips{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.docchip{display:flex;align-items:center;gap:9px;padding:8px 10px;background:var(--s2);border:1px solid var(--b2);border-radius:var(--rm);position:relative;overflow:hidden;flex:1 1 240px;min-width:200px;max-width:340px}
+.docchip::before{content:'';position:absolute;left:0;top:0;width:30px;height:2px;background:var(--ac);clip-path:polygon(0 0,100% 0,calc(100% - 6px) 100%,0 100%)}
+.docchip.err{border-color:rgba(232,115,111,.32)}
+.docchip.err::before{background:var(--red)}
+.dc-icon{width:26px;height:26px;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:var(--ac)}
+.dc-icon svg{width:18px;height:18px}
+.dc-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.dc-name{font-family:var(--fd);font-size:11.5px;font-weight:600;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dc-meta{font-family:var(--fm);font-size:9.5px;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.docchip.err .dc-meta{color:var(--red)}
+.dc-spin{display:inline-block;width:9px;height:9px;border:1.5px solid var(--b3);border-top-color:var(--ac);border-radius:50%;animation:dcspin .7s linear infinite;vertical-align:-1px;margin-right:5px}
+@keyframes dcspin{to{transform:rotate(360deg)}}
+.dc-x{background:transparent;border:1px solid var(--b2);color:var(--t3);width:24px;height:24px;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0}
+.dc-x:hover{color:var(--t1);border-color:var(--b3);background:var(--s3)}
+.dc-x svg{width:12px;height:12px}
+.pbox.dragover{border-color:var(--ac)!important;background:rgba(196,200,206,.04)}
+</style>
+</head>
+<body>
+<div class="app">
+
+<header>
+  <div class="logo">
+    <div class="logo-main">Szolga Tanács</div>
+    <div class="logo-sub">made by Rajczi András</div>
+  </div>
+  <div class="hdr-right">
+    <div class="roundbadge" id="round-badge" aria-live="polite"><span class="rb-dot"></span><span id="rb-text">Forduló 0/3</span></div>
+    <button class="ibt" id="btn-clear" title="Törlés">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3,6 5,6 21,6"/><path d="M19,6l-1,14H6L5,6"/><path d="M8,6V4h8v2"/></svg>
+    </button>
+    <button class="ibt" id="btn-settings" title="Beállítások">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
+  </div>
+</header>
+
+<main>
+  <div class="prompt-wrap">
+    <div class="sec-label">Lekérdezés</div>
+    <div class="pbox">
+      <textarea id="prompt" rows="4" placeholder="Írja be kérdését — az összes modell párhuzamosan fog válaszolni..."></textarea>
+      <div class="pbar">
+        <div class="pbar-left">
+          <button class="attachbtn" id="btn-attach" title="Dokumentum csatolása (PDF, Word, szöveg, kép)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+          </button>
+          <span class="pmeta" id="char-count">0 karakter</span>
+          <div class="modetog" role="group" aria-label="Mód kiválasztása">
+            <button class="modebtn" id="mode-par" title="Minden modell egymástól függetlenül válaszol">Párhuzamos</button>
+            <button class="modebtn" id="mode-council" title="A Szolgák több fordulóban megvitatják a kérdést">Tanács</button>
+          </div>
+        </div>
+        <div class="pacts">
+          <button class="btn btn-g" id="btn-stopround" style="display:none" title="A jelenlegi forduló befejezése után megáll">Forduló után megáll</button>
+          <button class="btn btn-g" id="btn-stop" style="display:none">Leállítás</button>
+          <button class="btn btn-p" id="btn-send">Elküldés <kbd>Ctrl+↵</kbd></button>
+        </div>
+      </div>
+    </div>
+    <div id="doc-chips" class="docchips" style="display:none"></div>
+    <input type="file" id="doc-input" multiple accept=".pdf,.docx,.txt,.md,.markdown,.csv,.json,.log,.yaml,.yml,.xml,.html,.htm,image/*" style="display:none">
+  </div>
+
+  <div class="res-sect">
+    <div class="sec-row">
+      <div class="sec-label">Válaszok</div>
+      <div class="tally" id="tally">—</div>
+    </div>
+    <div id="grid"></div>
+  </div>
+</main>
+
+<div class="sbar">
+  <div class="sbi"><div class="sbdot"></div><span id="sb-status" aria-live="polite">Készen áll</span></div>
+  <div class="sbi" id="sb-tokens"><div class="sbdot"></div><span id="sb-tok-text">≈ $0.000 · 0 token</span></div>
+  <div class="sbi" id="sb-conv"><div class="sbdot"></div><span id="sb-conv-text">Konvergencia —</span></div>
+  <div class="sbi" id="sb-mem" title="Kattintson a tanács emlékezetének ürítéséhez"><div class="sbdot"></div><span id="sb-mem-text">Tanács emlékezet: 0 témakör</span></div>
+  <div class="sbi"><div class="sbdot"></div><span>OpenRouter API</span></div>
+</div>
+</div>
+
+<!-- OVERLAY -->
+<div class="ovl" id="ovl"></div>
+
+<!-- SETTINGS PANEL -->
+<div class="panel" id="panel">
+  <div class="ph">
+    <span class="ptitle">Beállítások</span>
+    <button class="ibt" id="btn-pclose">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+  <div class="pbody">
+
+    <div class="fg">
+      <div class="fgl">API Konfiguráció</div>
+      <div class="field">
+        <label class="flbl">OpenRouter API Kulcs</label>
+        <div class="kwrap">
+          <input type="password" class="finp" id="inp-key" placeholder="sk-or-v1-...">
+          <button class="ktog" id="ktog">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="fg">
+      <div class="fgl">Dokumentum-olvasás</div>
+      <div class="field">
+        <label class="flbl">Olvasó modell (képek / szkennelt PDF átírásához)</label>
+        <input type="text" class="finp" id="inp-reader" placeholder="pl. google/gemini-2.0-flash-001">
+        <select class="qpick" id="rq" title="Gyors választás"><optgroup label="Vízió-képes modellek" id="rq-group"></optgroup></select>
+      </div>
+    </div>
+
+    <div class="fg">
+      <div class="fgl">Tanács Beállítások</div>
+      <div class="field">
+        <div class="fieldrow">
+          <label class="flbl">Tanács mód</label>
+          <div class="tog" id="set-mode-tog">
+            <button class="togbtn" data-v="off" id="set-mode-off">Ki</button>
+            <button class="togbtn" data-v="on" id="set-mode-on">Be</button>
+          </div>
+        </div>
+      </div>
+      <div class="field">
+        <label class="flbl">Maximum fordulók</label>
+        <div class="rwrap"><input type="range" id="inp-rounds" min="1" max="5" value="3"><span class="rval" id="rounds-val">3</span></div>
+      </div>
+      <div class="field">
+        <label class="flbl">Token limit (összesen)</label>
+        <input type="text" inputmode="numeric" class="finp" id="inp-tokbudget" value="50000">
+      </div>
+      <div class="field">
+        <label class="flbl">Max token / hívás</label>
+        <input type="text" inputmode="numeric" class="finp" id="inp-tokcall" value="1500">
+      </div>
+      <div class="field">
+        <div class="fieldrow">
+          <label class="flbl">Konvergencia érzékelés</label>
+          <div class="tog" id="set-conv-tog">
+            <button class="togbtn" data-v="off" id="set-conv-off">Ki</button>
+            <button class="togbtn" data-v="on" id="set-conv-on">Be</button>
+          </div>
+        </div>
+      </div>
+      <div class="field">
+        <label class="flbl">Konvergencia küszöb</label>
+        <div class="rwrap"><input type="range" id="inp-convth" min="0" max="1" step="0.05" value="0.70"><span class="rval" id="convth-val">0.70</span></div>
+      </div>
+      <div class="field">
+        <label class="flbl">Konszenzus modell</label>
+        <select class="qpick" id="inp-consensus"></select>
+      </div>
+    </div>
+
+    <div class="fg">
+      <div class="fgl">Modellek Száma</div>
+      <div class="field">
+        <label class="flbl">Hány AI modellt (Szolgát) kérdezzen meg (1–8)</label>
+        <div class="rwrap">
+          <input type="range" id="inp-cnt" min="1" max="8" value="3">
+          <span class="rval" id="cnt-val">3</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="fg">
+      <div class="fgl">Modell Konfiguráció</div>
+      <div id="mclist"></div>
+    </div>
+
+  </div>
+  <div class="pfoot">
+    <button class="btn btn-p" id="btn-save" style="flex:1">Mentés</button>
+    <button class="btn btn-g" id="btn-cancel">Mégse</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ════════════════════════════════════════════════════════════
+// CONSTANTS: PRESETS, QUICKPICK, ROLES, IDENTITY
+// ════════════════════════════════════════════════════════════
+const PRESETS = [
+  {name:'GPT-4o',         id:'openai/gpt-4o'},
+  {name:'Claude Sonnet',  id:'anthropic/claude-sonnet-4-5'},
+  {name:'Gemini Flash',   id:'google/gemini-2.0-flash-001'},
+  {name:'Llama 4 Scout',  id:'meta-llama/llama-4-scout'},
+  {name:'DeepSeek R1',    id:'deepseek/deepseek-r1'},
+  {name:'Mistral Large',  id:'mistralai/mistral-large-2411'},
+  {name:'Qwen QwQ-32B',   id:'qwen/qwq-32b'},
+  {name:'Grok-3 Beta',    id:'x-ai/grok-3-beta'},
+];
+
+const QUICKPICK = [
+  {label:'— Válasszon modellt —', id:''},
+  {label:'openai/gpt-4o', id:'openai/gpt-4o'},
+  {label:'openai/gpt-4o-mini', id:'openai/gpt-4o-mini'},
+  {label:'openai/o3-mini', id:'openai/o3-mini'},
+  {label:'anthropic/claude-opus-4', id:'anthropic/claude-opus-4'},
+  {label:'anthropic/claude-sonnet-4-5', id:'anthropic/claude-sonnet-4-5'},
+  {label:'anthropic/claude-3.5-haiku', id:'anthropic/claude-3.5-haiku'},
+  {label:'google/gemini-2.5-pro-preview', id:'google/gemini-2.5-pro-preview'},
+  {label:'google/gemini-2.0-flash-001', id:'google/gemini-2.0-flash-001'},
+  {label:'meta-llama/llama-4-maverick', id:'meta-llama/llama-4-maverick'},
+  {label:'meta-llama/llama-4-scout', id:'meta-llama/llama-4-scout'},
+  {label:'meta-llama/llama-3.3-70b-instruct', id:'meta-llama/llama-3.3-70b-instruct'},
+  {label:'deepseek/deepseek-r1', id:'deepseek/deepseek-r1'},
+  {label:'deepseek/deepseek-chat-v3-0324', id:'deepseek/deepseek-chat-v3-0324'},
+  {label:'mistralai/mistral-large-2411', id:'mistralai/mistral-large-2411'},
+  {label:'mistralai/codestral-2501', id:'mistralai/codestral-2501'},
+  {label:'qwen/qwq-32b', id:'qwen/qwq-32b'},
+  {label:'qwen/qwen-2.5-72b-instruct', id:'qwen/qwen-2.5-72b-instruct'},
+  {label:'x-ai/grok-3-beta', id:'x-ai/grok-3-beta'},
+  {label:'cohere/command-r-plus-08-2024', id:'cohere/command-r-plus-08-2024'},
+  {label:'perplexity/sonar-pro', id:'perplexity/sonar-pro'},
+  {label:'nvidia/llama-3.1-nemotron-ultra-253b-v1', id:'nvidia/llama-3.1-nemotron-ultra-253b-v1'},
+];
+
+// Role registry — key: { label, guidance }
+const ROLES = {
+  none: {
+    label:'Általános Szolga',
+    guidance:'Provide a balanced, thorough analysis of the problem.'
+  },
+  architect: {
+    label:'Architekt Szolga',
+    guidance:'Focus on system design, component structure, scalability, maintainability tradeoffs, and long-term architectural consequences. Prefer clean abstractions and minimal coupling.'
+  },
+  critic: {
+    label:'Kritikus Szolga',
+    guidance:'Identify flaws, unstated assumptions, edge cases, and weak reasoning in any proposed solution — including your own. Your value is in what others have missed, not in agreement.'
+  },
+  security: {
+    label:'Biztonsági Szolga',
+    guidance:'Evaluate authentication, authorization, data exposure, injection risks, dependency trust, and attack surfaces. Always ask: who could abuse this?'
+  },
+  sysadmin: {
+    label:'Rendszergazda Szolga',
+    guidance:'Focus on operational complexity, deployment, observability, incident response, and what happens when things go wrong at 2 AM.'
+  },
+  devil: {
+    label:'Ördög Ügyvédje Szolga',
+    guidance:'Argue the strongest case for the opposite position to stress-test assumptions. If the council is converging too easily, it is your duty to introduce productive friction.'
+  },
+  cost: {
+    label:'Költség-Optimalizáló Szolga',
+    guidance:'Analyze cost implications, resource efficiency, and whether the proposed solution is proportional to the actual problem size.'
+  },
+  summarizer: {
+    label:'Összefoglaló Szolga',
+    guidance:'Synthesize the discussion. Identify where the council agrees, where it genuinely disagrees, and what remains unresolved. Do not add new opinions — distill what others have said with clarity.'
+  },
+  docs: {
+    label:'Dokumentáció Szolga',
+    guidance:'Assess clarity, API design, naming, documentation needs, and developer experience. Ask: could a new team member understand this in 6 months?'
+  },
+};
+
+const DEFAULT_ROLES = ['architect','critic','none','security','sysadmin','cost','devil','docs'];
+
+function baseCouncilIdentity(roleLabel, roleGuidance){
+  return `You are ${roleLabel}, a member of the Szolga Tanács (Council of Servants).
+
+The Szolga Tanács assists the Szolga Hajcsár — the human operator who holds
+final decision-making authority.
+
+Your mandate:
+- Provide honest, expert analysis. Technical accuracy outweighs diplomacy.
+- Challenge weak reasoning regardless of which Szolga proposed it.
+- Defend strong ideas with reasoning, not with deference.
+- Do not repeat what others have said without adding new value.
+- If you genuinely agree with a point already made, acknowledge it briefly and
+  move on — do not pad your response.
+- Constructive disagreement is expected and valued.
+- The goal is to help the Hajcsár reach the best decision, not to reach consensus
+  at all costs.
+
+Your role-specific focus:
+${roleGuidance}`;
+}
+
+// ════════════════════════════════════════════════════════════
+// CONFIG: loadCfg, saveCfg (v4, backward compatible with v3)
+// ════════════════════════════════════════════════════════════
+const DEFAULT_COUNCIL = {
+  maxRounds:3, maxTotalTokens:50000, maxTokensPerCall:1500,
+  convergenceEnabled:true, convergenceThreshold:0.70,
+  councilMode:false, callTimeoutMs:90000, consensusModel:'auto'
+};
+const DEFAULT_READER_MODEL='google/gemini-2.0-flash-001';
+const VISION_MODELS=['google/gemini-2.0-flash-001','google/gemini-2.5-pro-preview','openai/gpt-4o','openai/gpt-4o-mini','anthropic/claude-sonnet-4-5','anthropic/claude-opus-4','anthropic/claude-3.5-haiku','meta-llama/llama-4-maverick','meta-llama/llama-4-scout'];
+
+function defaultModels(){
+  return PRESETS.map((m,i)=>({name:m.name,id:m.id,role:DEFAULT_ROLES[i]||'none',roleCustom:''}));
+}
+
+function migrate(p){
+  p.key = p.key||'';
+  p.count = p.count||3;
+  p.models = Array.isArray(p.models)?p.models:[];
+  while(p.models.length<8){
+    const i=p.models.length;
+    const pre=PRESETS[i]||{name:`Model ${i+1}`,id:''};
+    p.models.push({name:pre.name,id:pre.id,role:DEFAULT_ROLES[i]||'none',roleCustom:''});
+  }
+  p.models = p.models.map((m,i)=>({
+    name:m.name||PRESETS[i]?.name||`Model ${i+1}`,
+    id:m.id||'',
+    role:(m.role&&ROLES[m.role])?m.role:'none',
+    roleCustom:m.roleCustom||''
+  }));
+  p.council = {...DEFAULT_COUNCIL, ...(p.council||{})};
+  p.readerModel = p.readerModel || DEFAULT_READER_MODEL;
+  return p;
+}
+
+function loadCfg(){
+  try{
+    const sNew=localStorage.getItem('szolgatanacs-cfg-v4');
+    if(sNew) return migrate(JSON.parse(sNew));
+    // migrate legacy keys (previous builds) so existing settings are not lost
+    const s4=localStorage.getItem('ceklima-cfg-v4');
+    if(s4) return migrate(JSON.parse(s4));
+    const s3=localStorage.getItem('ceklima-cfg-v3');
+    if(s3) return migrate(JSON.parse(s3));
+  }catch{}
+  return {key:'',count:3,models:defaultModels(),council:{...DEFAULT_COUNCIL},readerModel:DEFAULT_READER_MODEL};
+}
+function saveCfg(){localStorage.setItem('szolgatanacs-cfg-v4',JSON.stringify(cfg));}
+
+// ════════════════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════════════════
+let cfg=loadCfg();
+let ctrls={};                 // AbortController per agent index (and 'consensus')
+let running=0;                // legacy parallel-mode in-flight counter
+let rtexts={};                // accumulated visible text per card (both modes)
+let conversations={};         // legacy multi-turn history per card
+let councilMemory=null;       // central shared council state (current run)
+let councilRunning=false;     // true while a council session is active
+let councilState={stopAll:false,stopAfterRound:false};
+let councilHistory=[];        // cross-question memory: [{query, consensus, ts}] — session-scoped, like parallel-mode conversations
+const COUNCIL_MEM_CHAR_BUDGET=3500;   // max chars of prior consensus injected per prompt (newest-first)
+let attachedDocs=[];          // [{id, name, kind, text, status:'processing'|'ready'|'error', chars, truncated, error, note}]
+let docSeq=0;                 // monotonic id source
+const DOC_CHAR_BUDGET=12000;  // max chars per document injected into prompts (~3k tokens)
+const DOC_TOTAL_BUDGET=30000; // max combined chars across all documents (~7.5k tokens)
+const MAX_DOCS=8;             // max simultaneously attached documents
+const SCANNED_PDF_MAX_PAGES=6;// pages rendered to image for vision transcription of scanned PDFs
+
+const $=id=>document.getElementById(id);
+const promptEl=$('prompt');
+const charCnt=$('char-count');
+const btnSend=$('btn-send');
+const btnStop=$('btn-stop');
+const btnStopRound=$('btn-stopround');
+const grid=$('grid');
+const tally=$('tally');
+const sbStat=$('sb-status');
+const sbTokens=$('sb-tokens');
+const sbTokText=$('sb-tok-text');
+const sbConv=$('sb-conv');
+const sbConvText=$('sb-conv-text');
+const sbMem=$('sb-mem');
+const sbMemText=$('sb-mem-text');
+const roundBadge=$('round-badge');
+const rbText=$('rb-text');
+const ovl=$('ovl');
+const panel=$('panel');
+const inpKey=$('inp-key');
+const inpCnt=$('inp-cnt');
+const cntVal=$('cnt-val');
+const mclist=$('mclist');
+const toast=$('toast');
+const modePar=$('mode-par');
+const modeCouncil=$('mode-council');
+
+// ════════════════════════════════════════════════════════════
+// UTILITIES
+// ════════════════════════════════════════════════════════════
+function esc(s){
+  if(!s)return'';
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function nf(n){return Math.round(n||0).toLocaleString('hu-HU');}
+function activeAgents(){return Array.from({length:cfg.count},(_,i)=>({idx:i})).filter(a=>cfg.models[a.idx]?.id);}
+function activeAgentCount(){return activeAgents().length;}
+function roleKeyFor(idx){const r=cfg.models[idx]?.role;return (r&&ROLES[r])?r:'none';}
+function roleLabelFor(idx){return ROLES[roleKeyFor(idx)].label;}
+function avg(arr){return arr.length?arr.reduce((a,b)=>a+b,0)/arr.length:0;}
+
+// ════════════════════════════════════════════════════════════
+// UI: grid, cards, summary card, status helpers
+// ════════════════════════════════════════════════════════════
+function init(){
+  applyModeUI();
+  buildGrid();
+  updateTally();
+  loadPricing();
+}
+
+function buildGrid(){
+  grid.innerHTML='';
+  rtexts={};
+  conversations={};
+  grid.classList.toggle('council',!!cfg.council.councilMode);
+  const n=cfg.count;
+  if(n===0){
+    grid.innerHTML=`<div class="empty-grid"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M12 8v4M12 16h.01"/></svg><p>Adja hozzá a modelleket a beállításokban</p></div>`;
+    return;
+  }
+  for(let i=0;i<n;i++){
+    const m=cfg.models[i]||PRESETS[i]||{name:`Model ${i+1}`,id:''};
+    grid.appendChild(mkCard(i,m));
+  }
+  grid.style.gridTemplateColumns=n===1?'1fr':n===2?'repeat(2,1fr)':'repeat(auto-fit,minmax(320px,1fr))';
+}
+
+function mkCard(i,m){
+  const c=document.createElement('div');
+  c.className='card';c.id=`card-${i}`;
+  const roleKey=(m.role&&ROLES[m.role])?m.role:'none';
+  const roleLabel=ROLES[roleKey].label;
+  c.innerHTML=`
+    <div class="card-head">
+      <div class="card-info">
+        <div class="sdot" id="dot-${i}"></div>
+        <div class="card-names">
+          <div class="card-nm">${esc(m.name)}</div>
+          <div class="card-mid">${esc(m.id)||'<em style="opacity:.4">nincs modell beállítva</em>'}</div>
+          <span class="rolebadge ${roleKey}" id="role-${i}">${esc(roleLabel)}</span>
+        </div>
+      </div>
+      <div class="card-acts">
+        <button class="cbt" id="abrt-${i}" onclick="abortOne(${i})" title="Leállítás" style="display:none">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="3"/></svg>
+        </button>
+        <button class="cbt" onclick="copyCard(${i})" title="Másolás">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="card-body" id="body-${i}">
+      <div class="placeholder">— várakozás —</div>
+    </div>
+    <div class="card-foot">
+      <div class="cchars" id="cch-${i}">— karakter</div>
+      <div class="cstat" id="cst-${i}">üresjárat</div>
+    </div>`;
+  return c;
+}
+
+function resetCard(i){
+  const b=$(`body-${i}`),d=$(`dot-${i}`),ch=$(`cch-${i}`),cs=$(`cst-${i}`),card=$(`card-${i}`),ab=$(`abrt-${i}`);
+  if(!b)return;
+  b.innerHTML='<div class="placeholder">— várakozás —</div>';
+  d.className='sdot';
+  ch.textContent='— karakter';
+  cs.textContent='üresjárat';
+  cs.className='cstat';
+  card.className='card';
+  if(ab)ab.style.display='none';
+  delete rtexts[i];
+}
+
+function updateTally(){
+  if(cfg.council.councilMode){
+    tally.textContent=`${cfg.count} Szolga · max ${cfg.council.maxRounds} forduló`;
+  }else{
+    tally.textContent=cfg.count===1?'1 modell aktív':`${cfg.count} modell aktív`;
+  }
+}
+
+function applyModeUI(){
+  const on=!!cfg.council.councilMode;
+  modePar.classList.toggle('active',!on);
+  modeCouncil.classList.toggle('active',on);
+  grid.classList.toggle('council',on);
+  promptEl.placeholder = on
+    ? 'Tegye fel kérdését a tanácsnak — a Szolgák több fordulóban megvitatják, majd összefoglalót adnak...'
+    : 'Írja be kérdését — az összes modell párhuzamosan fog válaszolni...';
+  sbTokens.classList.toggle('show',on);
+  sbConv.classList.toggle('show',on && cfg.council.convergenceEnabled);
+  updateMemoryBar();
+  if(!on){ roundBadge.classList.remove('show'); }
+}
+
+function setCouncilMode(on){
+  cfg.council.councilMode=on;
+  saveCfg();
+  applyModeUI();
+  updateTally();
+}
+
+function setRunningUI(isRunning, council){
+  btnSend.disabled=isRunning;
+  btnStop.style.display=isRunning?'':'none';
+  btnStopRound.style.display=(isRunning&&council)?'':'none';
+  btnStopRound.disabled=false;
+}
+
+function updateRoundBadge(cur,max,done){
+  roundBadge.classList.toggle('show',cfg.council.councilMode);
+  roundBadge.classList.toggle('done',!!done);
+  roundBadge.classList.toggle('converged',councilMemory&&councilMemory.status==='converged');
+  rbText.textContent=`Forduló ${cur}/${max}`;
+}
+
+function updateConvergenceBar(score){
+  sbConv.classList.toggle('show',cfg.council.councilMode&&cfg.council.convergenceEnabled);
+  sbConvText.textContent=`Konvergencia ${(score*100).toFixed(0)}%`;
+}
+
+function updateMemoryBar(){
+  const n=councilHistory.length;
+  sbMem.classList.toggle('show',cfg.council.councilMode&&n>0);
+  if(n>0)sbMemText.textContent=`Tanács emlékezet: ${n} témakör`;
+}
+
+function clearCouncilMemory(){
+  if(!councilHistory.length){toast_show('A tanács emlékezete már üres');return;}
+  councilHistory=[];
+  updateMemoryBar();
+  toast_show('A tanács emlékezete törölve');
+}
+
+function statusLabel(st){
+  return ({
+    idle:'Készen áll', running:'Fut...', converged:'A tanács megállapodott ✓',
+    budget_exceeded:'Token-keret kimerült', stopped:'Leállítva', complete:'Tanács kész ✓'
+  })[st]||'Kész';
+}
+
+// Council card: open a new round segment
+function councilCardBeginRound(idx, roundNum){
+  const body=$(`body-${idx}`);
+  if(roundNum===1){ body.innerHTML=''; rtexts[idx]=''; }
+  const div=document.createElement('div');
+  div.className='rounddiv';
+  div.innerHTML=`<span class="rounddiv-l">Forduló ${roundNum}</span>`;
+  body.appendChild(div);
+  if(roundNum>1) rtexts[idx]=(rtexts[idx]||'')+`\n\n─── Forduló ${roundNum} ───\n`;
+  const seg=document.createElement('span');
+  seg.className='rtext';
+  const cur=document.createElement('span'); cur.className='cur';
+  body.appendChild(seg); body.appendChild(cur);
+  body.scrollTop=body.scrollHeight;
+  return {
+    append(delta){
+      seg.appendChild(document.createTextNode(delta));
+      rtexts[idx]=(rtexts[idx]||'')+delta;
+      $(`cch-${idx}`).textContent=`${nf((rtexts[idx]||'').length)} karakter`;
+      body.scrollTop=body.scrollHeight;
+    },
+    finish(durationMs){
+      cur.remove();
+      if(durationMs){const s=document.createElement('span');s.className='rdur';s.textContent=` · ${(durationMs/1000).toFixed(1)}s`;div.appendChild(s);}
+    },
+    fail(msg){
+      cur.remove();
+      const e=document.createElement('div'); e.className='rerr'; e.textContent=`⚠ ${msg}`; body.appendChild(e);
+    }
+  };
+}
+
+function setCardState(idx, state, roundNum, durationMs){
+  const dot=$(`dot-${idx}`),cst=$(`cst-${idx}`),card=$(`card-${idx}`),ab=$(`abrt-${idx}`),cch=$(`cch-${idx}`);
+  if(!dot)return;
+  if(state==='streaming'){
+    dot.className='sdot active'; card.className='card streaming';
+    cst.className='cstat active'; cst.textContent=`streamelés... · ${roundNum}. f.`;
+    if(ab)ab.style.display='';
+  }else if(state==='done'){
+    dot.className='sdot'; card.className='card';
+    cst.className='cstat'; cst.textContent=`kész ✓ · ${roundNum}. f.`;
+    if(ab)ab.style.display='none';
+    if(rtexts[idx]!=null)cch.textContent=`${nf(rtexts[idx].length)} karakter · ${roundNum} ford.`;
+  }else if(state==='failed'){
+    dot.className='sdot error'; card.className='card errored';
+    cst.className='cstat error'; cst.textContent='hiba';
+    if(ab)ab.style.display='none';
+  }else if(state==='aborted'||state==='timeout'){
+    dot.className='sdot'; card.className='card';
+    cst.className='cstat'; cst.textContent=state==='timeout'?'időtúllépés':'leállítva';
+    if(ab)ab.style.display='none';
+  }
+}
+
+// Summary card
+function removeSummaryCard(){const e=$('summary-card');if(e)e.remove();}
+
+function mkSummaryCard(memory, m){
+  removeSummaryCard();
+  const c=document.createElement('div');
+  c.className='card sumcard'; c.id='summary-card';
+  c.innerHTML=`
+    <div class="card-head sum-head">
+      <div class="card-info">
+        <span class="sum-mark">◆</span>
+        <div class="card-names">
+          <div class="card-nm">SZOLGA TANÁCS — ÖSSZEFOGLALÓ</div>
+          <div class="card-mid" id="sum-meta">${esc(m.name)} · ${esc(m.id)}</div>
+        </div>
+      </div>
+      <div class="card-acts">
+        <button class="cbt" onclick="exportTranscript()" title="Jegyzőkönyv letöltése (.md)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        </button>
+        <button class="cbt" onclick="copySummary()" title="Másolás">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="card-body sum-body" id="summary-body">
+      <div class="placeholder"><div class="dots"><span>·</span><span>·</span><span>·</span></div></div>
+    </div>`;
+  grid.appendChild(c);
+  return c;
+}
+
+function updateSummaryMeta(memory){
+  const el=$('sum-meta'); if(!el)return;
+  const rounds=memory.rounds.length;
+  const szolgak=activeAgentCount();
+  el.textContent=`${rounds} forduló · ${szolgak} Szolga · ≈ $${CostController.estimatedCost.toFixed(3)} · ${nf(CostController.totalTokens)} token`;
+}
+
+// Minimal markdown -> HTML for the summary card
+function renderMarkdown(md){
+  const e=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const inline=s=>e(s)
+    .replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>')
+    .replace(/(^|[^*])\*([^*]+)\*/g,'$1<em>$2</em>')
+    .replace(/`([^`]+)`/g,'<code>$1</code>');
+  const lines=String(md||'').split('\n');
+  let html='',inList=false;
+  const closeList=()=>{if(inList){html+='</ul>';inList=false;}};
+  for(const raw of lines){
+    const line=raw.replace(/\s+$/,'');
+    if(/^#{1,3}\s+/.test(line)){closeList();html+=`<div class="sum-h">${inline(line.replace(/^#{1,3}\s+/,''))}</div>`;continue;}
+    if(/^[-*]\s+/.test(line)){if(!inList){html+='<ul class="sum-ul">';inList=true;}html+=`<li>${inline(line.replace(/^[-*]\s+/,''))}</li>`;continue;}
+    if(/^---+$/.test(line)){closeList();html+='<hr class="sum-hr">';continue;}
+    if(line.trim()===''){closeList();html+='<div class="sum-sp"></div>';continue;}
+    closeList();
+    html+=`<p class="sum-p">${inline(line)}</p>`;
+  }
+  closeList();
+  return html;
+}
+
+// ════════════════════════════════════════════════════════════
+// PROMPT BUILDER
+// ════════════════════════════════════════════════════════════
+function buildSystemPrompt(roleKey, roleCustom){
+  const role=ROLES[roleKey]||ROLES.none;
+  const guidance=(roleCustom&&roleCustom.trim())?roleCustom.trim():role.guidance;
+  return baseCouncilIdentity(role.label, guidance);
+}
+
+function buildRound1Prompt(query, roleLabel){
+  return `The Szolga Hajcsár has posed the following question to the council:
+
+---
+${query}
+---
+
+This is Round 1. Provide your initial analysis as ${roleLabel}.
+Be substantive but concise. Do not summarize the question back to the Hajcsár.`;
+}
+
+function buildRoundNPrompt(query, transcript, roundNum, roleLabel){
+  return `The Szolga Hajcsár's original question was:
+---
+${query}
+---
+
+The council has completed ${roundNum-1} round(s) of discussion. Here is the full
+discussion so far:
+
+${transcript}
+
+---
+
+This is Round ${roundNum}. As ${roleLabel}, respond to the discussion above.
+You may: agree with and extend a point, disagree and explain why,
+identify something the council has missed, or synthesize partial agreements.
+Do NOT simply repeat what has been said. Add value or acknowledge that you have
+nothing to add.`;
+}
+
+function buildTranscript(rounds){
+  const parts=[];
+  rounds.forEach(r=>{
+    parts.push(`=== Round ${r.number} ===`);
+    r.responses.forEach(resp=>{
+      if(resp.status==='done'&&resp.content){
+        parts.push(`${resp.agentName} (${resp.role}):\n${resp.content}\n`);
+      }
+    });
+  });
+  return parts.join('\n');
+}
+
+// Cross-question memory: distilled prior deliberations, newest-first, bounded by a char budget.
+function buildCouncilMemoryBlock(){
+  if(!councilHistory.length)return '';
+  const parts=[]; let used=0;
+  for(let i=councilHistory.length-1;i>=0;i--){
+    const h=councilHistory[i];
+    const entry=`Korábbi kérdés: ${h.query}\nA tanács akkori konklúziója:\n${h.consensus}`;
+    if(parts.length && used+entry.length>COUNCIL_MEM_CHAR_BUDGET)break;
+    parts.unshift(entry);
+    used+=entry.length;
+  }
+  return `=== A TANÁCS KORÁBBI EMLÉKEZETE ===
+The council has previously deliberated on the topics below and reached these conclusions.
+Treat them as established shared context: you may build on them, reference them
+(e.g. "ahogy a tanács korábban megállapította…"), or revise them if new reasoning warrants.
+Do not re-derive them from scratch unless the current question requires it.
+
+${parts.join('\n\n— — —\n\n')}
+=== EMLÉKEZET VÉGE ===`;
+}
+
+function buildAgentContext(idx, query, memory, roundNum){
+  const m=cfg.models[idx];
+  const roleKey=roleKeyFor(idx);
+  const roleLabel=ROLES[roleKey].label;
+  const sys=buildSystemPrompt(roleKey, m.roleCustom);
+  let user=roundNum===1
+    ? buildRound1Prompt(query, roleLabel)
+    : buildRoundNPrompt(query, buildTranscript(memory.rounds), roundNum, roleLabel);
+  const mem=buildCouncilMemoryBlock();
+  const doc=buildDocBlock();
+  user=[mem,doc,user].filter(Boolean).join('\n\n');
+  return [{role:'system',content:sys},{role:'user',content:user}];
+}
+
+function buildConsensusPrompt(memory){
+  const sys=`You are the Összefoglaló (Summarizer) of the Szolga Tanács.
+Your task is to produce the final council report for the Szolga Hajcsár.
+Be precise, structured, and honest about remaining disagreements.
+Do not invent consensus where none exists.`;
+  let user=`The Szolga Hajcsár asked:
+---
+${memory.query}
+---
+
+The council held ${memory.rounds.length} round(s) of discussion:
+${buildTranscript(memory.rounds)}
+
+Produce the final Szolga Tanács report with these exact sections:
+
+## Megállapodások (Points of Agreement)
+List points where multiple Szolgák converged.
+
+## Nézeteltérések (Points of Disagreement)
+List genuine unresolved disagreements, naming the positions held.
+
+## Ajánlott Megközelítés (Recommended Approach)
+The council's best recommendation, with brief reasoning.
+If the council is genuinely split, present the top two options with tradeoffs.
+
+## Nyitott Kérdések (Open Questions for the Hajcsár)
+Decisions that require human judgment or additional context.
+
+---
+Szolga Tanács — Összefoglaló`;
+  const mem=buildCouncilMemoryBlock();
+  const doc=buildDocBlock();
+  user=[mem,doc,user].filter(Boolean).join('\n\n');
+  return [{role:'system',content:sys},{role:'user',content:user}];
+}
+
+// ════════════════════════════════════════════════════════════
+// COST CONTROLLER
+// ════════════════════════════════════════════════════════════
+let modelPricing={};          // id -> {prompt, completion} USD per token, from OpenRouter /models
+let pricingLoaded=false;
+
+const CostController = {
+  totalTokens:0,
+  estimatedCost:0,
+  hasEstimate:false,            // true if any part of the cost is a blended guess (unknown model or estimated tokens)
+  reset(){this.totalTokens=0;this.estimatedCost=0;this.hasEstimate=false;this.updateBar();},
+  record(tokens, modelId){
+    const total=(tokens&&tokens.total)||0;
+    this.totalTokens+=total;
+    const p=modelId&&modelPricing[modelId];
+    if(p){
+      const pt=(tokens.prompt||0);
+      const ct=(tokens.completion!=null?tokens.completion:Math.max(0,total-pt));
+      this.estimatedCost+=pt*p.prompt + ct*p.completion;   // real per-token rates; free models = 0
+      if(tokens.estimated)this.hasEstimate=true;
+    }else{
+      this.estimatedCost+=total/1000000*2.0;               // fallback blended ~$2/M when price unknown
+      this.hasEstimate=true;
+    }
+    this.updateBar();
+  },
+  isExhausted(){return this.totalTokens>=cfg.council.maxTotalTokens;},
+  canStartRound(){
+    const remaining=cfg.council.maxTotalTokens-this.totalTokens;
+    return remaining>cfg.council.maxTokensPerCall*Math.max(1,activeAgentCount());
+  },
+  updateBar(){
+    const pre=this.hasEstimate?'≈ ':'';
+    sbTokText.textContent=`${pre}$${this.estimatedCost.toFixed(3)} · ${nf(this.totalTokens)} / ${nf(cfg.council.maxTotalTokens)} token`;
+    sbTokens.classList.toggle('warn',this.totalTokens>=cfg.council.maxTotalTokens*0.85);
+  }
+};
+
+// Fetch real per-model pricing from OpenRouter's public /models endpoint (no key needed). Cached 24h.
+async function loadPricing(){
+  try{
+    const c=JSON.parse(localStorage.getItem('szolgatanacs-pricing')||'null');
+    if(c&&c.ts&&(Date.now()-c.ts<864e5)&&c.map){
+      modelPricing=c.map;pricingLoaded=true;
+      CostController.updateBar();
+      return;   // fresh cache — no need to hit the network
+    }
+  }catch{}
+  try{
+    const res=await fetch('https://openrouter.ai/api/v1/models');
+    if(!res.ok)return;
+    const j=await res.json();
+    const map={};
+    (j.data||[]).forEach(m=>{
+      if(m&&m.id&&m.pricing){
+        map[m.id]={prompt:parseFloat(m.pricing.prompt)||0, completion:parseFloat(m.pricing.completion)||0};
+      }
+    });
+    if(Object.keys(map).length){
+      modelPricing=map; pricingLoaded=true;
+      try{localStorage.setItem('szolgatanacs-pricing',JSON.stringify({ts:Date.now(),map}));}catch{}
+      CostController.updateBar();
+    }
+  }catch{}
+}
+
+// Per-model price label for the settings panel
+function priceLabel(id){
+  if(!id)return '';
+  const p=modelPricing[id];
+  if(!p)return pricingLoaded?'<span class="mcprice">ár ismeretlen</span>':'';
+  if(p.prompt===0&&p.completion===0)return '<span class="mcprice free">ingyenes</span>';
+  return `<span class="mcprice">be: $${(p.prompt*1e6).toFixed(2)}/M · ki: $${(p.completion*1e6).toFixed(2)}/M</span>`;
+}
+
+// ════════════════════════════════════════════════════════════
+// AGENT EXECUTOR
+// ════════════════════════════════════════════════════════════
+// Pure transport: fetch + SSE parse. Calls callbacks; returns {content,tokens,durationMs}.
+async function rawStream(modelId, messages, ctrl, opts={}){
+  const start=Date.now();
+  const reqBody={model:modelId,messages,stream:true,stream_options:{include_usage:true}};
+  if(opts.maxTokens)reqBody.max_tokens=opts.maxTokens;
+  const res=await fetch('https://openrouter.ai/api/v1/chat/completions',{
+    method:'POST',
+    headers:{
+      'Authorization':`Bearer ${cfg.key}`,
+      'Content-Type':'application/json',
+      'HTTP-Referer':'https://szolgatanacs.app',
+      'X-Title':'Szolga Tanács'
+    },
+    body:JSON.stringify(reqBody),
+    signal:ctrl.signal
+  });
+  if(!res.ok){
+    let em=`HTTP ${res.status}`;
+    try{const e=await res.json();em=e.error?.message||em;}catch{}
+    throw new Error(em);
+  }
+  if(opts.onStart)opts.onStart();
+  let content='',usage=null;
+  const reader=res.body.getReader();
+  const dec=new TextDecoder();
+  let buf='';
+  while(true){
+    const{done,value}=await reader.read();
+    if(done)break;
+    buf+=dec.decode(value,{stream:true});
+    const lines=buf.split('\n');
+    buf=lines.pop()??'';
+    for(const line of lines){
+      const t=line.trim();
+      if(!t.startsWith('data: '))continue;
+      const d=t.slice(6).trim();
+      if(d==='[DONE]')continue;
+      try{
+        const parsed=JSON.parse(d);
+        if(parsed.usage)usage=parsed.usage;
+        const delta=parsed.choices?.[0]?.delta?.content;
+        if(delta){content+=delta;if(opts.onDelta)opts.onDelta(delta,content);}
+      }catch{}
+    }
+  }
+  const durationMs=Date.now()-start;
+  let tokens;
+  if(usage){
+    tokens={
+      prompt:usage.prompt_tokens||0,
+      completion:usage.completion_tokens||0,
+      total:usage.total_tokens||((usage.prompt_tokens||0)+(usage.completion_tokens||0))
+    };
+  }else{
+    const est=Math.ceil(content.length/4);  // fallback estimate
+    tokens={prompt:0,completion:est,total:est,estimated:true};
+  }
+  return {content,tokens,durationMs};
+}
+
+// Legacy parallel-mode streaming (one turn per card, multi-turn history kept)
+async function streamOne(idx,messages){
+  const m=cfg.models[idx]||PRESETS[idx];
+  const body=$(`body-${idx}`),dot=$(`dot-${idx}`),cch=$(`cch-${idx}`),cst=$(`cst-${idx}`),card=$(`card-${idx}`),ab=$(`abrt-${idx}`);
+
+  dot.className='sdot wait';
+  body.innerHTML='<div class="placeholder"><div class="dots"><span>·</span><span>·</span><span>·</span></div></div>';
+  cst.className='cstat active';
+  cst.textContent='csatlakozás...';
+  if(ab)ab.style.display='';
+
+  const ctrl=new AbortController();
+  ctrls[idx]=ctrl;
+  let fullText='';
+  let span,cur;
+
+  try{
+    const r=await rawStream(m.id,messages,ctrl,{
+      onStart(){
+        dot.className='sdot active';
+        card.className='card streaming';
+        cst.textContent='streamelés...';
+        body.innerHTML='';
+        span=document.createElement('span'); span.className='rtext';
+        cur=document.createElement('span'); cur.className='cur';
+        body.appendChild(span); body.appendChild(cur);
+      },
+      onDelta(delta){
+        span.appendChild(document.createTextNode(delta));
+        fullText+=delta;
+        cch.textContent=`${nf(fullText.length)} karakter`;
+        body.scrollTop=body.scrollHeight;
+      }
+    });
+    fullText=r.content;
+    if(cur)cur.remove();
+    dot.className='sdot';
+    card.className='card';
+    cst.className='cstat';
+    rtexts[idx]=fullText;
+    conversations[idx].push({role:'assistant',content:fullText});
+    const turns=Math.floor(conversations[idx].length/2);
+    cst.textContent=turns>1?`kész ✓ · ${turns}. ford.`:'kész ✓';
+    if(ab)ab.style.display='none';
+
+  }catch(err){
+    if(conversations[idx]?.length && conversations[idx][conversations[idx].length-1].role==='user'){
+      conversations[idx].pop();
+    }
+    if(ab)ab.style.display='none';
+    if(err.name==='AbortError'){
+      dot.className='sdot'; card.className='card'; cst.className='cstat';
+      cst.textContent='leállítva';
+      if(!fullText)body.innerHTML='<div class="placeholder">— leállítva —</div>';
+    }else{
+      dot.className='sdot error'; card.className='card errored'; cst.className='cstat error';
+      cst.textContent='hiba';
+      body.innerHTML=`<div class="rerr">⚠ Hiba: ${esc(err.message)}</div>`;
+    }
+  }finally{
+    delete ctrls[idx];
+    running=Math.max(0,running-1);
+    if(running===0){
+      btnSend.disabled=false;
+      btnStop.style.display='none';
+      sbStat.textContent='Kész';
+    }else{
+      sbStat.textContent=`${running} modell fut...`;
+    }
+  }
+}
+
+// Council-mode streaming — fault isolated, timeout, token tracking, round-segmented UI
+async function streamOneCouncil(agentIdx, messages, roundNum){
+  const m=cfg.models[agentIdx];
+  const resp={
+    agentIdx, agentName:m.name, role:roleLabelFor(agentIdx), modelId:m.id,
+    content:'', tokens:{prompt:0,completion:0,total:0},
+    status:'streaming', error:null, durationMs:0
+  };
+  const seg=councilCardBeginRound(agentIdx, roundNum);
+  setCardState(agentIdx,'streaming',roundNum);
+
+  const ctrl=new AbortController();
+  ctrls[agentIdx]=ctrl;
+  let timedOut=false;
+  const timeoutId=setTimeout(()=>{timedOut=true;ctrl.abort();},cfg.council.callTimeoutMs||90000);
+
+  try{
+    const r=await rawStream(m.id,messages,ctrl,{
+      maxTokens:cfg.council.maxTokensPerCall,
+      onDelta(delta){seg.append(delta);}
+    });
+    clearTimeout(timeoutId);
+    resp.content=r.content; resp.tokens=r.tokens; resp.durationMs=r.durationMs; resp.status='done';
+    CostController.record(r.tokens, m.id);
+    seg.finish(r.durationMs);
+    setCardState(agentIdx,'done',roundNum,r.durationMs);
+  }catch(err){
+    clearTimeout(timeoutId);
+    if(err.name==='AbortError'){
+      resp.status=timedOut?'timeout':'aborted';
+      resp.error=timedOut?'időtúllépés (90s)':'leállítva';
+    }else{
+      resp.status='failed'; resp.error=err.message;
+    }
+    seg.fail(resp.error);
+    setCardState(agentIdx,resp.status,roundNum);
+  }finally{
+    delete ctrls[agentIdx];
+  }
+  return resp;
+}
+
+// ════════════════════════════════════════════════════════════
+// COUNCIL ORCHESTRATOR
+// ════════════════════════════════════════════════════════════
+function initMemory(query){
+  return {
+    query, rounds:[], totalTokensUsed:0, estimatedCostUSD:0,
+    status:'idle', consensusSummary:null, startTime:Date.now(), endTime:null
+  };
+}
+function initRound(num){return {number:num,responses:[],startTime:Date.now(),endTime:null,convergenceScore:0};}
+
+function collectResults(roundData, results){
+  let ok=0;
+  for(const r of results){
+    const resp=r.status==='fulfilled'?r.value:{status:'failed',error:String(r.reason),content:'',tokens:{total:0}};
+    roundData.responses.push(resp);
+    if(resp.status==='done'&&resp.content)ok++;
+  }
+  roundData.endTime=Date.now();
+  return ok;
+}
+
+function detectConvergence(memory){
+  if(memory.rounds.length<2)return 0;
+  const last=memory.rounds[memory.rounds.length-1];
+  const prev=memory.rounds[memory.rounds.length-2];
+  const lastDone=last.responses.filter(r=>r.status==='done'&&r.content);
+  const prevDone=prev.responses.filter(r=>r.status==='done'&&r.content);
+  if(!lastDone.length)return 0;
+  const signals=[];
+
+  // Signal 1: agreement language ratio (40%)
+  const agreementPhrases=['egyetértek','agree','helyesen','jól látja','correct','building on','similarly','as noted','as previously','i concur','elfogadom'];
+  const agreementCount=lastDone.filter(r=>{const c=r.content.toLowerCase();return agreementPhrases.some(p=>c.includes(p));}).length;
+  signals.push((agreementCount/lastDone.length)*0.4);
+
+  // Signal 2: response length collapse (30%)
+  const avgLast=avg(lastDone.map(r=>r.content.length));
+  const avgPrev=avg(prevDone.map(r=>r.content.length))||avgLast||1;
+  signals.push(Math.max(0,1-avgLast/avgPrev)*0.3);
+
+  // Signal 3: explicit convergence declarations (30%)
+  const convPhrases=['consensus','megállapodás','tanács álláspontja','all agree','unanimous','no objections'];
+  const explicit=lastDone.some(r=>{const c=r.content.toLowerCase();return convPhrases.some(p=>c.includes(p));});
+  signals.push(explicit?0.3:0);
+
+  return Math.min(1,signals.reduce((a,b)=>a+b,0));
+}
+
+function pickConsensusAgentIdx(){
+  const agents=activeAgents();
+  if(!agents.length)return 0;
+  const cm=cfg.council.consensusModel;
+  if(cm!=null&&cm!=='auto'){
+    const i=parseInt(cm,10);
+    if(agents.some(a=>a.idx===i))return i;
+  }
+  const summarizer=[...agents].reverse().find(a=>cfg.models[a.idx].role==='summarizer');
+  return summarizer?summarizer.idx:agents[0].idx;
+}
+
+async function generateConsensus(memory){
+  const idx=pickConsensusAgentIdx();
+  const m=cfg.models[idx];
+  const msgs=buildConsensusPrompt(memory);
+  const card=mkSummaryCard(memory,m);
+  const bodyEl=card.querySelector('.sum-body');
+  sbStat.textContent='Összefoglaló készítése...';
+
+  let attempt=0,success=false;
+  while(attempt<2&&!success){
+    attempt++;
+    const ctrl=new AbortController();
+    ctrls['consensus']=ctrl;
+    let acc='';
+    let live;
+    try{
+      bodyEl.innerHTML='<div class="placeholder"><div class="dots"><span>·</span><span>·</span><span>·</span></div></div>';
+      const r=await rawStream(m.id,msgs,ctrl,{
+        maxTokens:Math.max(cfg.council.maxTokensPerCall*2,2000),
+        onStart(){
+          bodyEl.innerHTML='';
+          live=document.createElement('div'); live.className='rtext'; bodyEl.appendChild(live);
+        },
+        onDelta(delta,content){acc=content;live.textContent=acc;bodyEl.scrollTop=bodyEl.scrollHeight;}
+      });
+      memory.consensusSummary=r.content;
+      CostController.record(r.tokens, m.id);
+      bodyEl.innerHTML=renderMarkdown(r.content);   // render markdown once complete
+      updateSummaryMeta(memory);
+      success=true;
+    }catch(err){
+      if(err.name==='AbortError'){
+        if(acc){memory.consensusSummary=acc;bodyEl.innerHTML=renderMarkdown(acc);}
+        else bodyEl.innerHTML='<div class="placeholder">— összefoglaló leállítva —</div>';
+        updateSummaryMeta(memory);
+        success=true;  // do not retry on user abort
+      }else if(attempt>=2){
+        bodyEl.innerHTML=`<div class="rerr">⚠ Összefoglaló sikertelen: ${esc(err.message)}</div>`;
+      }
+    }finally{
+      delete ctrls['consensus'];
+    }
+  }
+}
+
+async function runCouncil(query){
+  councilRunning=true;
+  councilMemory=initMemory(query);
+  councilState={stopAll:false,stopAfterRound:false};
+  CostController.reset();
+
+  const agents=activeAgents();
+  for(const a of agents)resetCard(a.idx);
+  removeSummaryCard();
+  setRunningUI(true,true);
+  updateRoundBadge(0,cfg.council.maxRounds);
+  sbConv.classList.toggle('show',cfg.council.convergenceEnabled);
+  if(cfg.council.convergenceEnabled)sbConvText.textContent='Konvergencia —';
+  councilMemory.status='running';
+
+  try{
+    for(let roundNum=1;roundNum<=cfg.council.maxRounds;roundNum++){
+      // Budget pre-check
+      if(CostController.isExhausted()||!CostController.canStartRound()){
+        councilMemory.status='budget_exceeded';
+        toast_show('Token-keret kimerült — a tanács összefoglalót készít');
+        break;
+      }
+      updateRoundBadge(roundNum,cfg.council.maxRounds);
+      sbStat.textContent=`Tanács — ${roundNum}. forduló fut...`;
+
+      const contexts=agents.map(a=>buildAgentContext(a.idx,query,councilMemory,roundNum));
+      const roundData=initRound(roundNum);
+      const results=await Promise.allSettled(agents.map((a,i)=>streamOneCouncil(a.idx,contexts[i],roundNum)));
+      const ok=collectResults(roundData,results);
+      councilMemory.rounds.push(roundData);
+      councilMemory.totalTokensUsed=CostController.totalTokens;
+      councilMemory.estimatedCostUSD=CostController.estimatedCost;
+
+      if(ok===0){
+        councilMemory.status='stopped';
+        toast_show('A tanács összes Szolgája meghibásodott');
+        break;
+      }
+
+      // Convergence check (round 2+)
+      if(roundNum>=2&&cfg.council.convergenceEnabled){
+        const score=detectConvergence(councilMemory);
+        roundData.convergenceScore=score;
+        updateConvergenceBar(score);
+        if(score>=cfg.council.convergenceThreshold){
+          councilMemory.status='converged';
+          toast_show(`Konvergencia ${(score*100).toFixed(0)}% — a tanács a ${roundNum}. fordulóban megállapodott`,'gold');
+          break;
+        }
+      }
+
+      if(councilState.stopAll){councilMemory.status='stopped';break;}
+      if(councilState.stopAfterRound){councilMemory.status='stopped';toast_show('A tanács a kérésre megállt');break;}
+    }
+
+    // Final consensus from whatever was collected
+    const hasOutput=councilMemory.rounds.some(r=>r.responses.some(x=>x.status==='done'&&x.content));
+    if(hasOutput && !councilState.stopAll){
+      await generateConsensus(councilMemory);
+    }else if(hasOutput && councilState.stopAll){
+      // Stop All still generates consensus per spec 13.2
+      await generateConsensus(councilMemory);
+    }
+
+    // Record into cross-question memory — only if a consensus was actually produced
+    if(councilMemory.consensusSummary){
+      councilHistory.push({query, consensus:councilMemory.consensusSummary, ts:Date.now()});
+      updateMemoryBar();
+    }
+
+    if(councilMemory.status==='running')councilMemory.status='complete';
+  }finally{
+    councilMemory.endTime=Date.now();
+    councilRunning=false;
+    setRunningUI(false,true);
+    sbStat.textContent=statusLabel(councilMemory.status);
+    updateRoundBadge(councilMemory.rounds.length,cfg.council.maxRounds,true);
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+// ENTRY POINTS
+// ════════════════════════════════════════════════════════════
+async function send(){
+  const prompt=promptEl.value.trim();
+  if(!prompt){toast_show('Kérjük, adjon meg lekérdezést');return;}
+  if(!cfg.key){toast_show('Adja meg az API kulcsot a beállításokban');openPanel();return;}
+  const anyMissing=Array.from({length:cfg.count},(_,i)=>cfg.models[i]).some(m=>!m?.id);
+  if(anyMissing){toast_show('Egy vagy több modell ID hiányzik');return;}
+
+  if(cfg.council.councilMode){
+    if(councilRunning){toast_show('A tanács már ülésezik');return;}
+    runCouncil(prompt);
+  }else{
+    legacySend(prompt);
+  }
+}
+
+function legacySend(prompt){
+  const doc=buildDocBlock();
+  const userContent=doc?doc+'\n\n'+prompt:prompt;
+  for(let i=0;i<cfg.count;i++){
+    resetCard(i);
+    if(!conversations[i])conversations[i]=[];
+    conversations[i].push({role:'user',content:userContent});
+  }
+  btnSend.disabled=true;
+  btnStop.style.display='';
+  running=cfg.count;
+  sbStat.textContent=`${running} modell fut...`;
+  for(let i=0;i<cfg.count;i++)streamOne(i,conversations[i]);
+}
+
+function abortOne(idx){if(ctrls[idx])ctrls[idx].abort();}
+
+function stopAll(){
+  if(councilRunning)councilState.stopAll=true;
+  Object.values(ctrls).forEach(c=>{try{c.abort();}catch{}});
+}
+
+function stopAfterRound(){
+  if(!councilRunning)return;
+  councilState.stopAfterRound=true;
+  btnStopRound.disabled=true;
+  toast_show('A tanács a jelenlegi forduló után megáll');
+}
+
+function clearAll(){
+  stopAll();
+  conversations={};
+  rtexts={};
+  councilMemory=null;
+  councilRunning=false;
+  councilHistory=[];
+  updateMemoryBar();
+  clearDocs();
+  CostController.reset();
+  removeSummaryCard();
+  for(let i=0;i<cfg.count;i++)resetCard(i);
+  btnSend.disabled=false;
+  btnStop.style.display='none';
+  btnStopRound.style.display='none';
+  roundBadge.classList.remove('show');
+  if(cfg.council.convergenceEnabled)sbConvText.textContent='Konvergencia —';
+  sbStat.textContent='Készen áll';
+  running=0;
+}
+
+function copyCard(idx){
+  const text=rtexts[idx]||$(`body-${idx}`)?.querySelector('.rtext')?.textContent||'';
+  if(!text){toast_show('Nincs másolható tartalom');return;}
+  navigator.clipboard.writeText(text).then(()=>toast_show('Vágólapra másolva ✓')).catch(()=>toast_show('Másolás sikertelen'));
+}
+
+function copySummary(){
+  const text=(councilMemory&&councilMemory.consensusSummary)||'';
+  if(!text){toast_show('Nincs másolható összefoglaló');return;}
+  navigator.clipboard.writeText(text).then(()=>toast_show('Összefoglaló másolva ✓')).catch(()=>toast_show('Másolás sikertelen'));
+}
+
+function exportTranscript(){
+  if(!councilMemory||!councilMemory.rounds.length){toast_show('Nincs exportálható tanácskozás');return;}
+  let md=`# Szolga Tanács — Tanácskozási Jegyzőkönyv\n\n`;
+  md+=`**A Szolga Hajcsár kérdése:**\n\n${councilMemory.query}\n\n`;
+  md+=`**Fordulók:** ${councilMemory.rounds.length} · **Szolgák:** ${activeAgentCount()} · `;
+  md+=`**Token:** ${nf(CostController.totalTokens)} · **Becsült költség:** ≈ $${CostController.estimatedCost.toFixed(4)}\n\n`;
+  md+=`**Állapot:** ${statusLabel(councilMemory.status)}\n\n---\n\n`;
+  councilMemory.rounds.forEach(r=>{
+    md+=`## Forduló ${r.number}`;
+    if(r.convergenceScore)md+=`  _(konvergencia: ${(r.convergenceScore*100).toFixed(0)}%)_`;
+    md+=`\n\n`;
+    r.responses.forEach(x=>{
+      md+=`### ${x.agentName} — ${x.role} \`${x.modelId}\`\n\n`;
+      if(x.status==='done'&&x.content)md+=`${x.content}\n\n`;
+      else md+=`_(${x.status}${x.error?': '+x.error:''})_\n\n`;
+    });
+  });
+  if(councilMemory.consensusSummary){
+    md+=`---\n\n# Összefoglaló\n\n${councilMemory.consensusSummary}\n`;
+  }
+  const blob=new Blob([md],{type:'text/markdown;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download=`szolga-tanacs-${new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')}.md`;
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+  toast_show('Jegyzőkönyv letöltve ✓');
+}
+
+// ════════════════════════════════════════════════════════════
+// SETTINGS PANEL
+// ════════════════════════════════════════════════════════════
+function openPanel(){
+  inpKey.value=cfg.key;
+  $('inp-reader').value=cfg.readerModel||DEFAULT_READER_MODEL;
+  $('rq-group').innerHTML='<option value="">— Gyors választás —</option>'+VISION_MODELS.map(m=>`<option value="${esc(m)}">${esc(m)}</option>`).join('');
+  inpCnt.value=cfg.count;
+  cntVal.textContent=cfg.count;
+  // council settings sync
+  setTog('set-mode-on','set-mode-off',cfg.council.councilMode);
+  setTog('set-conv-on','set-conv-off',cfg.council.convergenceEnabled);
+  $('inp-rounds').value=cfg.council.maxRounds; $('rounds-val').textContent=cfg.council.maxRounds;
+  $('inp-tokbudget').value=cfg.council.maxTotalTokens;
+  $('inp-tokcall').value=cfg.council.maxTokensPerCall;
+  $('inp-convth').value=cfg.council.convergenceThreshold; $('convth-val').textContent=cfg.council.convergenceThreshold.toFixed(2);
+  renderConsensusOptions();
+  renderMCList(cfg.count);
+  panel.classList.add('open');
+  ovl.classList.add('open');
+}
+function closePanel(){panel.classList.remove('open');ovl.classList.remove('open');}
+
+function setTog(onId,offId,on){$(onId).classList.toggle('active',on);$(offId).classList.toggle('active',!on);}
+function getTog(onId){return $(onId).classList.contains('active');}
+
+function renderConsensusOptions(){
+  const sel=$('inp-consensus');
+  let html=`<option value="auto" ${cfg.council.consensusModel==='auto'?'selected':''}>Automatikus (Összefoglaló szerep / 1. modell)</option>`;
+  for(let i=0;i<cfg.count;i++){
+    const m=cfg.models[i]||{name:`Model ${i+1}`};
+    const sel2=String(cfg.council.consensusModel)===String(i)?'selected':'';
+    html+=`<option value="${i}" ${sel2}>${esc(`Modell ${i+1}: ${m.name}`)}</option>`;
+  }
+  sel.innerHTML=html;
+}
+
+function renderMCList(n){
+  mclist.innerHTML='';
+  const roleOpts=Object.entries(ROLES).map(([k,v])=>`<option value="${k}">${esc(v.label)}</option>`).join('');
+  for(let i=0;i<n;i++){
+    const m=cfg.models[i]||PRESETS[i]||{name:'',id:'',role:'none',roleCustom:''};
+    const d=document.createElement('div');
+    d.className='mci';
+    const qopts=QUICKPICK.map(q=>`<option value="${esc(q.id)}" ${q.id===m.id?'selected':''}>${esc(q.label)}</option>`).join('');
+    d.innerHTML=`
+      <div class="mcidx"><span class="mcnum">${i+1}</span><span>Modell ${i+1}</span></div>
+      <input type="text" class="finp" id="mn-${i}" placeholder="Megjelenítési név (pl. GPT-4o)" value="${esc(m.name)}">
+      <input type="text" class="finp" id="mi-${i}" placeholder="Model ID (pl. openai/gpt-4o)" value="${esc(m.id)}">
+      <select class="qpick" id="mq-${i}" title="Gyors választás"><optgroup label="Gyors modell választás">${qopts}</optgroup></select>
+      <div class="mcprice-row" id="mcp-${i}">${priceLabel(m.id)}</div>
+      <div class="mcrlbl">Szerep a tanácsban</div>
+      <select class="qpick" id="mr-${i}">${roleOpts}</select>
+      <input type="text" class="finp" id="mrc-${i}" placeholder="Egyéni szerep (opcionális — felülírja a fentit)" value="${esc(m.roleCustom||'')}">`;
+    mclist.appendChild(d);
+    $(`mr-${i}`).value=(m.role&&ROLES[m.role])?m.role:'none';
+    $(`mq-${i}`).addEventListener('change',()=>{
+      const v=$(`mq-${i}`).value;
+      if(!v)return;
+      $(`mi-${i}`).value=v;
+      $(`mcp-${i}`).innerHTML=priceLabel(v);
+      const preset=QUICKPICK.find(q=>q.id===v);
+      if(preset&&!$(`mn-${i}`).value)$(`mn-${i}`).value=preset.label;
+    });
+    $(`mi-${i}`).addEventListener('input',()=>{$(`mcp-${i}`).innerHTML=priceLabel($(`mi-${i}`).value.trim());});
+  }
+}
+
+function parseIntSafe(v,def){const n=parseInt(String(v).replace(/[^\d]/g,''),10);return Number.isFinite(n)&&n>0?n:def;}
+
+// ════════════════════════════════════════════════════════════
+// DOCUMENT INGESTION — PDF / Word / text client-side; images & scanned PDFs via a vision "reader" Szolga
+// ════════════════════════════════════════════════════════════
+function fileKind(file){
+  const n=(file.name||'').toLowerCase(), t=file.type||'';
+  if(t.startsWith('image/')||/\.(png|jpe?g|webp|gif|bmp)$/.test(n))return 'image';
+  if(t==='application/pdf'||n.endsWith('.pdf'))return 'pdf';
+  if(n.endsWith('.docx')||t.includes('wordprocessingml'))return 'docx';
+  if(n.endsWith('.doc'))return 'doc-legacy';
+  if(t.startsWith('text/')||/\.(txt|md|markdown|csv|json|log|ya?ml|xml|html?)$/.test(n))return 'text';
+  return 'unsupported';
+}
+
+function fileToDataURL(file){
+  return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=()=>rej(new Error('Fájl olvasási hiba'));r.readAsDataURL(file);});
+}
+
+// One vision-capable model reads images/scanned pages and returns text the other Szolgák can use.
+async function visionTranscribe(dataURLs, hint){
+  if(!cfg.key)throw new Error('API kulcs szükséges a vizuális tartalom feldolgozásához');
+  const reader=(cfg.readerModel||DEFAULT_READER_MODEL).trim();
+  const content=[{type:'text',text:hint}];
+  dataURLs.forEach(u=>content.push({type:'image_url',image_url:{url:u}}));
+  const r=await rawStream(reader,[{role:'user',content}],new AbortController(),{maxTokens:4000});
+  return r.content;
+}
+
+async function extractDocx(file){
+  if(typeof mammoth==='undefined')throw new Error('Word-olvasó nem töltődött be (ellenőrizze az internetkapcsolatot)');
+  const arrayBuffer=await file.arrayBuffer();
+  const result=await mammoth.extractRawText({arrayBuffer});
+  return {text:result.value||'', note:'Word dokumentum'};
+}
+
+async function extractPdf(file){
+  if(typeof pdfjsLib==='undefined')throw new Error('PDF-olvasó nem töltődött be (ellenőrizze az internetkapcsolatot)');
+  pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  const data=await file.arrayBuffer();
+  const pdf=await pdfjsLib.getDocument({data}).promise;
+  let text='';
+  for(let p=1;p<=pdf.numPages;p++){
+    const page=await pdf.getPage(p);
+    const tc=await page.getTextContent();
+    text+=tc.items.map(it=>it.str).join(' ')+'\n\n';
+  }
+  // Almost no text layer → likely scanned → render pages to images and OCR via the reader Szolga
+  if(text.replace(/\s+/g,'').length < pdf.numPages*40){
+    const pages=Math.min(pdf.numPages,SCANNED_PDF_MAX_PAGES);
+    const urls=[];
+    for(let p=1;p<=pages;p++){
+      const page=await pdf.getPage(p);
+      const vp=page.getViewport({scale:1.6});
+      const canvas=document.createElement('canvas');
+      canvas.width=vp.width;canvas.height=vp.height;
+      await page.render({canvasContext:canvas.getContext('2d'),viewport:vp}).promise;
+      urls.push(canvas.toDataURL('image/jpeg',0.82));
+    }
+    const t=await visionTranscribe(urls,`This is a scanned ${pages}-page PDF. Transcribe ALL text faithfully and completely, preserving structure (headings, lists, tables as text). Output only the document content.`);
+    return {text:t, note:`szkennelt PDF — ${pages} oldal átírva`};
+  }
+  return {text, note:`PDF — ${pdf.numPages} oldal`};
+}
+
+async function ingestFiles(fileList){
+  const files=Array.from(fileList||[]);
+  for(const f of files){
+    if(attachedDocs.length>=MAX_DOCS){toast_show(`Legfeljebb ${MAX_DOCS} dokumentum csatolható`);break;}
+    await ingestFile(f);
+  }
+}
+
+async function ingestFile(file){
+  if(!file)return;
+  const id=++docSeq;
+  const kind=fileKind(file);
+  if(kind==='unsupported'||kind==='doc-legacy'){
+    attachedDocs.push({id,name:file.name,kind,text:'',status:'error',error:kind==='doc-legacy'?'A régi .doc nem támogatott — mentse .docx-ként vagy PDF-ként':'Nem támogatott fájltípus'});
+    renderDocChips();return;
+  }
+  const doc={id,name:file.name,kind,text:'',status:'processing',chars:0,truncated:false,error:null,note:''};
+  attachedDocs.push(doc);
+  renderDocChips();
+  const findDoc=()=>attachedDocs.find(d=>d.id===id);
+  try{
+    let res;
+    if(kind==='text')res={text:await file.text(),note:'szövegfájl'};
+    else if(kind==='docx')res=await extractDocx(file);
+    else if(kind==='pdf')res=await extractPdf(file);
+    else if(kind==='image'){
+      const url=await fileToDataURL(file);
+      const t=await visionTranscribe([url],'Transcribe and describe this image in full detail. Transcribe ALL visible text faithfully. If it is a diagram, chart, screenshot or photo, describe its structure, labels and data precisely. Output only the transcription/description.');
+      res={text:t,note:'kép (átírva)'};
+    }
+    const d=findDoc();
+    if(!d)return;   // removed while processing
+    let text=(res.text||'').trim();
+    if(!text){d.status='error';d.error='Nem sikerült tartalmat kinyerni';renderDocChips();return;}
+    const truncated=text.length>DOC_CHAR_BUDGET;
+    if(truncated)text=text.slice(0,DOC_CHAR_BUDGET);
+    Object.assign(d,{text,chars:text.length,truncated,note:res.note,status:'ready'});
+    renderDocChips();
+    toast_show(truncated?`„${d.name}" feldolgozva (${nf(text.length)} karakterre vágva) ✓`:`„${d.name}" feldolgozva ✓`);
+  }catch(err){
+    const d=findDoc();
+    if(d){d.status='error';d.error=err.message;renderDocChips();}
+  }
+}
+
+// Text block injected into every Szolga's prompt — this is how a non-capable model "reads" the documents.
+// Multiple documents are clearly delimited so the models can tell them apart and compare.
+function buildDocBlock(){
+  const ready=attachedDocs.filter(d=>d.status==='ready'&&d.text);
+  if(!ready.length)return '';
+  let used=0; const parts=[]; let dropped=0;
+  ready.forEach((d,i)=>{
+    let text=d.text, trunc=d.truncated;
+    if(used+text.length>DOC_TOTAL_BUDGET){
+      const room=Math.max(0,DOC_TOTAL_BUDGET-used);
+      if(room<200){dropped++;return;}   // no meaningful room left
+      text=text.slice(0,room); trunc=true;
+    }
+    used+=text.length;
+    parts.push(`--- DOKUMENTUM ${i+1}/${ready.length}: ${d.name} ---${trunc?' (rövidítve)':''}\n${text}`);
+  });
+  if(!parts.length)return '';
+  const header=ready.length>1
+    ? `A Szolga Hajcsár ${ready.length} dokumentumot csatolt. Mindegyiket használd referenciaként; ahol releváns, hasonlítsd össze őket. Az egyes dokumentumokat névvel és sorszámmal hivatkozd.`
+    : `A Szolga Hajcsár az alábbi dokumentumot csatolta. Használd referenciaként a válaszhoz.`;
+  const foot=dropped?`\n(Megjegyzés: ${dropped} dokumentum a teljes hosszkeret miatt kimaradt.)`:'';
+  return `=== CSATOLT DOKUMENTUMOK ===
+${header}${foot}
+
+${parts.join('\n\n')}
+=== DOKUMENTUMOK VÉGE ===`;
+}
+
+function docIcon(kind){
+  if(kind==='image')return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg>';
+  if(kind==='pdf')return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>';
+  return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6M9 17h6"/></svg>';
+}
+
+function renderDocChips(){
+  const wrap=$('doc-chips');
+  if(!attachedDocs.length){wrap.style.display='none';wrap.innerHTML='';return;}
+  wrap.style.display='flex';
+  wrap.innerHTML=attachedDocs.map(d=>{
+    let meta;
+    if(d.status==='processing')meta=`<span class="dc-spin"></span>feldolgozás...`;
+    else if(d.status==='error')meta=`⚠ ${esc(d.error||'hiba')}`;
+    else meta=`${esc(d.note||'')} · ${nf(d.chars)} karakter${d.truncated?' · vágva':''}`;
+    return `<div class="docchip${d.status==='error'?' err':''}">`+
+      `<span class="dc-icon">${docIcon(d.kind)}</span>`+
+      `<div class="dc-info"><span class="dc-name">${esc(d.name)}</span><span class="dc-meta">${meta}</span></div>`+
+      `<button class="dc-x" data-docid="${d.id}" title="Eltávolítás"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 6L6 18M6 6l12 12"/></svg></button>`+
+      `</div>`;
+  }).join('');
+  wrap.querySelectorAll('.dc-x').forEach(btn=>btn.addEventListener('click',()=>removeDoc(parseInt(btn.dataset.docid,10))));
+}
+
+function removeDoc(id){
+  attachedDocs=attachedDocs.filter(d=>d.id!==id);
+  renderDocChips();
+}
+
+function clearDocs(){
+  attachedDocs=[];
+  const di=$('doc-input'); if(di)di.value='';
+  renderDocChips();
+}
+
+// ════════════════════════════════════════════════════════════
+// EVENT LISTENERS
+// ════════════════════════════════════════════════════════════
+$('btn-settings').addEventListener('click',openPanel);
+$('btn-pclose').addEventListener('click',closePanel);
+$('btn-cancel').addEventListener('click',closePanel);
+$('ovl').addEventListener('click',closePanel);
+
+$('inp-cnt').addEventListener('input',()=>{
+  cntVal.textContent=inpCnt.value;
+  renderMCList(parseInt(inpCnt.value));
+  renderConsensusOptions();
+});
+
+$('inp-rounds').addEventListener('input',()=>{$('rounds-val').textContent=$('inp-rounds').value;});
+$('inp-convth').addEventListener('input',()=>{$('convth-val').textContent=parseFloat($('inp-convth').value).toFixed(2);});
+
+$('set-mode-on').addEventListener('click',()=>setTog('set-mode-on','set-mode-off',true));
+$('set-mode-off').addEventListener('click',()=>setTog('set-mode-on','set-mode-off',false));
+$('set-conv-on').addEventListener('click',()=>setTog('set-conv-on','set-conv-off',true));
+$('set-conv-off').addEventListener('click',()=>setTog('set-conv-on','set-conv-off',false));
+
+$('ktog').addEventListener('click',()=>{inpKey.type=inpKey.type==='password'?'text':'password';});
+$('rq').addEventListener('change',()=>{const v=$('rq').value;if(v)$('inp-reader').value=v;});
+
+// Document attach
+$('btn-attach').addEventListener('click',()=>$('doc-input').click());
+$('doc-input').addEventListener('change',e=>{if(e.target.files&&e.target.files.length)ingestFiles(e.target.files);});
+(function(){const box=document.querySelector('.pbox');if(!box)return;
+  ['dragenter','dragover'].forEach(ev=>box.addEventListener(ev,e=>{e.preventDefault();box.classList.add('dragover');}));
+  box.addEventListener('dragleave',e=>{e.preventDefault();if(e.relatedTarget&&box.contains(e.relatedTarget))return;box.classList.remove('dragover');});
+  box.addEventListener('drop',e=>{e.preventDefault();box.classList.remove('dragover');if(e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files.length)ingestFiles(e.dataTransfer.files);});
+})();
+
+$('btn-save').addEventListener('click',()=>{
+  const n=parseInt(inpCnt.value);
+  cfg.key=inpKey.value.trim();
+  cfg.readerModel=$('inp-reader').value.trim()||DEFAULT_READER_MODEL;
+  cfg.count=n;
+  for(let i=0;i<8;i++){
+    const nm=$(`mn-${i}`),mi=$(`mi-${i}`),mr=$(`mr-${i}`),mrc=$(`mrc-${i}`);
+    if(nm&&mi){
+      cfg.models[i]={
+        name:nm.value.trim()||PRESETS[i]?.name||`Model ${i+1}`,
+        id:mi.value.trim(),
+        role:mr?mr.value:(cfg.models[i]?.role||'none'),
+        roleCustom:mrc?mrc.value.trim():(cfg.models[i]?.roleCustom||'')
+      };
+    }
+  }
+  // council settings
+  cfg.council.councilMode=getTog('set-mode-on');
+  cfg.council.convergenceEnabled=getTog('set-conv-on');
+  cfg.council.maxRounds=parseInt($('inp-rounds').value,10);
+  cfg.council.maxTotalTokens=parseIntSafe($('inp-tokbudget').value,50000);
+  cfg.council.maxTokensPerCall=parseIntSafe($('inp-tokcall').value,1500);
+  cfg.council.convergenceThreshold=parseFloat($('inp-convth').value);
+  cfg.council.consensusModel=$('inp-consensus').value;
+
+  saveCfg();
+  closePanel();
+  applyModeUI();
+  buildGrid();
+  updateTally();
+  CostController.updateBar();
+  toast_show('Beállítások mentve ✓');
+});
+
+modePar.addEventListener('click',()=>{if(!councilRunning)setCouncilMode(false);});
+modeCouncil.addEventListener('click',()=>{if(!councilRunning)setCouncilMode(true);});
+
+promptEl.addEventListener('input',()=>charCnt.textContent=`${promptEl.value.length} karakter`);
+promptEl.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){e.preventDefault();send();}});
+$('btn-send').addEventListener('click',send);
+$('btn-stop').addEventListener('click',stopAll);
+$('btn-stopround').addEventListener('click',stopAfterRound);
+$('btn-clear').addEventListener('click',clearAll);
+$('sb-mem').addEventListener('click',clearCouncilMemory);
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closePanel();});
+
+let toastTimer;
+function toast_show(msg,variant){
+  toast.textContent=msg;
+  toast.className='show'+(variant?(' '+variant):'');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>toast.className='',2900);
+}
+
+init();
+</script>
+</body>
+</html>
