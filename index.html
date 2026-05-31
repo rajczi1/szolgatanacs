@@ -773,6 +773,7 @@ const I18N = {
   cst_stopped:     {hu:'leállítva', en:'stopped'},
   ph_stopped:      {hu:'— leállítva —', en:'— stopped —'},
   err_prefix:      {hu:'Hiba: ', en:'Error: '},
+  err_junk:        {hu:'értelmetlen vagy nem-szöveges válasz', en:'unusable / non-text response'},
   running_n:       {hu:n=>`${n} modell fut...`, en:n=>`${n} model${n===1?'':'s'} running...`},
   sum_making:      {hu:'Összefoglaló készítése...', en:'Generating summary...'},
   ph_sum_stopped:  {hu:'— összefoglaló leállítva —', en:'— summary stopped —'},
@@ -2092,6 +2093,7 @@ async function streamOne(idx,messages){
       }
     });
     fullText=r.content;
+    if(isJunkResponse(fullText))throw new Error(t('err_junk'));
     if(cur)cur.remove();
     dot.className='sdot';
     card.className='card';
@@ -2129,12 +2131,40 @@ async function streamOne(idx,messages){
   }
 }
 
-// Build a Servant's model chain: primary id + its fallback ids (deduped, non-empty)
+// Models that are NOT chat/completion models (e.g. OpenRouter's Body Builder, which only emits
+// API-request objects). They can never produce a usable Servant answer, so they are skipped.
+const NON_CHAT_MODELS=['openrouter/bodybuilder'];
+
+// Detect outputs that are not a real answer: a Body Builder–style API request object, or
+// degenerate token-salad (heavy non-Latin script mixing). Such responses are dropped.
+function looksLikeRequestObject(text){
+  const t=(text||'').trim().replace(/^```(?:json)?\s*/i,'').replace(/```\s*$/,'').trim();
+  if(t[0]!=='{'&&t[0]!=='[')return false;
+  try{
+    const j=JSON.parse(t);
+    const o=Array.isArray(j)?j[0]:j;
+    if(o&&typeof o==='object'&&(o.requests||(o.model&&Array.isArray(o.messages))))return true;
+    if(j&&j.requests)return true;
+  }catch{
+    if(/"requests"\s*:|"messages"\s*:\s*\[/.test(t)&&t.length<6000)return true;
+  }
+  return false;
+}
+function looksLikeGibberish(text){
+  const t=text||'';
+  if(t.length<200)return false;   // too short to judge — let it through
+  // characters from scripts that should not appear in a Hungarian/English technical answer
+  const exotic=(t.match(/[\u0400-\u04FF\u0590-\u05FF\u0600-\u06FF\u0900-\u097F\u3040-\u30FF\u3400-\u9FFF\uAC00-\uD7AF]/g)||[]).length;
+  return exotic/t.length>0.02;    // >2% Cyrillic/Hebrew/Arabic/Devanagari/CJK/Hangul = degenerate
+}
+function isJunkResponse(text){return looksLikeRequestObject(text)||looksLikeGibberish(text);}
+
+// Build a Servant's model chain: primary id + its fallback ids (deduped, non-empty, blocklist removed)
 function modelChain(idx){
   const m=cfg.models[idx]||{};
   const pinned=councilModelOverride[idx];   // if a fallback already worked this session, try it first
   const chain=[pinned, m.id, ...((m.fallbacks)||[])].map(x=>(x||'').trim()).filter(Boolean);
-  return [...new Set(chain)];
+  return [...new Set(chain)].filter(x=>!NON_CHAT_MODELS.includes(x));
 }
 
 // Council-mode streaming — fault isolated, timeout, token tracking, round-segmented UI.
@@ -2168,6 +2198,13 @@ async function streamOneCouncil(agentIdx, messages, roundNum){
         onDelta(delta){seg.append(delta);}
       });
       clearTimeout(timeoutId);
+      if(isJunkResponse(r.content)){
+        CostController.record(r.tokens, mid);                 // it still consumed tokens
+        setModelStatus(mid,'down','értelmetlen válasz');
+        lastErr=new Error(t('err_junk'));
+        if(ci<chain.length-1)continue;                        // try next model in the chain
+        resp.status='failed'; resp.error=t('err_junk'); resp.tokens=r.tokens; break;
+      }
       resp.content=r.content; resp.tokens=r.tokens; resp.durationMs=r.durationMs; resp.status='done';
       resp.modelId=mid; resp.usedFallback=isFallback;
       CostController.record(r.tokens, mid);
