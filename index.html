@@ -14,9 +14,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
-<!-- Document parsing (loaded from CDN; used only when a file is attached) -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<!-- Document parsing libs (pdf.js, mammoth) are lazy-loaded on first file upload — see loadScriptOnce() -->
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -342,6 +340,10 @@ input[type=range]::-moz-range-thumb{width:15px;height:15px;border:none;border-ra
 .dc-x:hover{color:var(--t1);border-color:var(--b3);background:var(--s3)}
 .dc-x svg{width:12px;height:12px}
 .pbox.dragover{border-color:var(--ac)!important;background:rgba(196,200,206,.04)}
+/* Respect users who prefer reduced motion: cut animations and transitions */
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;scroll-behavior:auto!important}
+}
 </style>
 </head>
 <body>
@@ -370,7 +372,7 @@ input[type=range]::-moz-range-thumb{width:15px;height:15px;border:none;border-ra
   <div class="prompt-wrap">
     <div class="sec-label" data-i18n="sec_query">Lekérdezés</div>
     <div class="pbox">
-      <textarea id="prompt" rows="4" data-i18n-ph="ph_prompt_par" placeholder="Írja be kérdését — az összes modell párhuzamosan fog válaszolni..."></textarea>
+      <textarea id="prompt" rows="4" data-i18n-ph="ph_prompt_par" data-i18n-aria="aria_prompt" aria-label="Lekérdezés a Szolga Tanácshoz" placeholder="Írja be kérdését — az összes modell párhuzamosan fog válaszolni..."></textarea>
       <div class="pbar">
         <div class="pbar-left">
           <button class="attachbtn" id="btn-attach" data-i18n-title="attach_t" title="Dokumentum csatolása (PDF, Word, szöveg, kép)">
@@ -476,6 +478,10 @@ input[type=range]::-moz-range-thumb{width:15px;height:15px;border:none;border-ra
       <div class="field">
         <label class="flbl" data-i18n="lbl_tokcall">Max token / hívás</label>
         <input type="text" inputmode="numeric" class="finp" id="inp-tokcall" value="1500">
+      </div>
+      <div class="field">
+        <label class="flbl" data-i18n="lbl_docbudget">Dokumentum-limit (karakter / fájl)</label>
+        <div class="rwrap"><input type="range" id="inp-docbudget" min="4000" max="120000" step="4000" value="40000"><span class="rval" id="docbudget-val">40 000</span></div>
       </div>
       <div class="field">
         <div class="fieldrow">
@@ -595,6 +601,7 @@ const I18N = {
   sec_query:       {hu:'Lekérdezés', en:'Query'},
   ph_prompt_par:   {hu:'Írja be kérdését — az összes modell párhuzamosan fog válaszolni...', en:'Type your question — all models will answer in parallel...'},
   ph_prompt_cnc:   {hu:'Tegye fel kérdését a tanácsnak — a Szolgák több fordulóban megvitatják, majd összefoglalót adnak...', en:'Ask the council — the Servants debate over several rounds, then summarize...'},
+  aria_prompt:     {hu:'Lekérdezés a Szolga Tanácshoz', en:'Query for the Szolga Tanács'},
   mode_par:        {hu:'Párhuzamos', en:'Parallel'},
   mode_cnc:        {hu:'Tanács', en:'Council'},
   mode_par_t:      {hu:'Minden modell egymástól függetlenül válaszol', en:'Each model answers independently'},
@@ -621,6 +628,7 @@ const I18N = {
   lbl_maxrounds:   {hu:'Maximum fordulók', en:'Maximum rounds'},
   lbl_tokbudget:   {hu:'Token limit (összesen)', en:'Token limit (total)'},
   lbl_tokcall:     {hu:'Max token / hívás', en:'Max tokens / call'},
+  lbl_docbudget:   {hu:'Dokumentum-limit (karakter / fájl)', en:'Document limit (chars / file)'},
   lbl_conv:        {hu:'Konvergencia érzékelés', en:'Convergence detection'},
   lbl_convth:      {hu:'Konvergencia küszöb', en:'Convergence threshold'},
   lbl_consensus:   {hu:'Konszenzus modell', en:'Consensus model'},
@@ -922,7 +930,7 @@ ${roleGuidance}`;
 const DEFAULT_COUNCIL = {
   maxRounds:3, maxTotalTokens:50000, maxTokensPerCall:1500,
   convergenceEnabled:true, convergenceThreshold:0.70,
-  councilMode:false, callTimeoutMs:90000, consensusModel:'auto'
+  councilMode:false, callTimeoutMs:90000, consensusModel:'auto', docCharBudget:40000
 };
 const DEFAULT_READER_MODEL='google/gemini-2.0-flash-001';
 const VISION_MODELS=['google/gemini-2.0-flash-001','google/gemini-2.5-pro-preview','openai/gpt-4o','openai/gpt-4o-mini','anthropic/claude-sonnet-4-5','anthropic/claude-opus-4','anthropic/claude-3.5-haiku','meta-llama/llama-4-maverick','meta-llama/llama-4-scout'];
@@ -977,7 +985,7 @@ let councilHistory=[];        // cross-question memory: [{query, consensus, ts}]
 const COUNCIL_MEM_CHAR_BUDGET=3500;   // max chars of prior consensus injected per prompt (newest-first)
 let attachedDocs=[];          // [{id, name, kind, text, status:'processing'|'ready'|'error', chars, truncated, error, note}]
 let docSeq=0;                 // monotonic id source
-const DOC_CHAR_BUDGET=12000;  // max chars per document injected into prompts (~3k tokens)
+const DOC_CHAR_BUDGET=40000;  // max chars per document injected into prompts (~10k tokens). NOTE: the doc is injected into EVERY agent's prompt EVERY round, so cost ≈ this × agents × rounds. Raise further for fuller reviews, lower to save tokens.
 const DOC_TOTAL_BUDGET=30000; // max combined chars across all documents (~7.5k tokens)
 const MAX_DOCS=8;             // max simultaneously attached documents
 const SCANNED_PDF_MAX_PAGES=6;// pages rendered to image for vision transcription of scanned PDFs
@@ -2545,6 +2553,7 @@ function openPanel(){
   $('inp-rounds').value=cfg.council.maxRounds; $('rounds-val').textContent=cfg.council.maxRounds;
   $('inp-tokbudget').value=cfg.council.maxTotalTokens;
   $('inp-tokcall').value=cfg.council.maxTokensPerCall;
+  $('inp-docbudget').value=cfg.council.docCharBudget; $('docbudget-val').textContent=nf(cfg.council.docCharBudget);
   $('inp-convth').value=cfg.council.convergenceThreshold; $('convth-val').textContent=cfg.council.convergenceThreshold.toFixed(2);
   renderConsensusOptions();
   renderMCList(cfg.count);
@@ -2628,7 +2637,29 @@ async function visionTranscribe(dataURLs, hint){
   return r.content;
 }
 
+// Lazy-load a CDN script once, on demand. Tries with Subresource Integrity first;
+// if the integrity check ever fails to match the served file, falls back to loading
+// without it so document upload never breaks. Cached per URL.
+const _scriptCache={};
+function loadScriptOnce(url, integrity){
+  if(_scriptCache[url])return _scriptCache[url];
+  const attempt=(withIntegrity)=>new Promise((resolve,reject)=>{
+    const s=document.createElement('script');
+    s.src=url; s.crossOrigin='anonymous';
+    if(withIntegrity&&integrity)s.integrity=integrity;
+    s.onload=()=>resolve();
+    s.onerror=()=>reject(new Error('script load failed: '+url));
+    document.head.appendChild(s);
+  });
+  const p=attempt(true).catch(()=>attempt(false));   // SRI mismatch → degrade gracefully
+  _scriptCache[url]=p;
+  return p;
+}
+const CDN_PDFJS={url:'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js', sri:'sha384-/1qUCSGwTur9vjf/z9lmu/eCUYbpOTgSjmpbMQZ1/CtX2v/WcAIKqRv+U1DUCG6e'};
+const CDN_MAMMOTH={url:'https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js', sri:'sha384-nFoSjZIoH3CCp8W639jJyQkuPHinJ2NHe7on1xvlUA7SuGfJAfvMldrsoAVm6ECz'};
+
 async function extractDocx(file){
+  await loadScriptOnce(CDN_MAMMOTH.url, CDN_MAMMOTH.sri);
   if(typeof mammoth==='undefined')throw new Error('Word-olvasó nem töltődött be (ellenőrizze az internetkapcsolatot)');
   const arrayBuffer=await file.arrayBuffer();
   const result=await mammoth.extractRawText({arrayBuffer});
@@ -2636,6 +2667,7 @@ async function extractDocx(file){
 }
 
 async function extractPdf(file){
+  await loadScriptOnce(CDN_PDFJS.url, CDN_PDFJS.sri);
   if(typeof pdfjsLib==='undefined')throw new Error('PDF-olvasó nem töltődött be (ellenőrizze az internetkapcsolatot)');
   pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
   const data=await file.arrayBuffer();
@@ -2698,8 +2730,9 @@ async function ingestFile(file){
     if(!d)return;   // removed while processing
     let text=(res.text||'').trim();
     if(!text){d.status='error';d.error='Nem sikerült tartalmat kinyerni';renderDocChips();return;}
-    const truncated=text.length>DOC_CHAR_BUDGET;
-    if(truncated)text=text.slice(0,DOC_CHAR_BUDGET);
+    const budget=cfg.council.docCharBudget||DOC_CHAR_BUDGET;
+    const truncated=text.length>budget;
+    if(truncated)text=text.slice(0,budget);
     Object.assign(d,{text,chars:text.length,truncated,note:res.note,status:'ready'});
     renderDocChips();
     toast_show(truncated?t('t_doc_done_trunc',d.name,nf(text.length)):t('t_doc_done',d.name));
@@ -2790,6 +2823,7 @@ $('inp-cnt').addEventListener('input',()=>{
 });
 
 $('inp-rounds').addEventListener('input',()=>{$('rounds-val').textContent=$('inp-rounds').value;});
+$('inp-docbudget').addEventListener('input',()=>{$('docbudget-val').textContent=nf(parseInt($('inp-docbudget').value,10));});
 $('inp-convth').addEventListener('input',()=>{$('convth-val').textContent=parseFloat($('inp-convth').value).toFixed(2);});
 
 $('set-mode-on').addEventListener('click',()=>setTog('set-mode-on','set-mode-off',true));
@@ -2854,6 +2888,7 @@ $('btn-save').addEventListener('click',()=>{
   cfg.council.maxRounds=parseInt($('inp-rounds').value,10);
   cfg.council.maxTotalTokens=parseIntSafe($('inp-tokbudget').value,50000);
   cfg.council.maxTokensPerCall=parseIntSafe($('inp-tokcall').value,1500);
+  cfg.council.docCharBudget=parseIntSafe($('inp-docbudget').value,40000);
   cfg.council.convergenceThreshold=parseFloat($('inp-convth').value);
   cfg.council.consensusModel=$('inp-consensus').value;
 
