@@ -530,6 +530,8 @@ input[type=range]::-moz-range-thumb{width:15px;height:15px;border:none;border-ra
       <div class="fgl" data-i18n="fg_models">Modell Konfiguráció</div>
       <button class="btn-test" id="btn-test-models" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg><span data-i18n="test_models">Modellek tesztelése</span></button>
       <div class="test-hint" data-i18n="test_hint">Megpingeli a beállított modelleket; a pötty mutatja, melyik elérhető most.</div>
+      <button class="btn-test" id="btn-apply-fb" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 17V5a2 2 0 0 1 2-2h8"/><path d="M8 21h10a2 2 0 0 0 2-2V9l-5-5H8a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2z"/></svg><span data-i18n="apply_free_fb">Ingyenes tartalék lánc mindenkire</span></button>
+      <div class="test-hint" data-i18n="apply_free_fb_hint">Minden Szolgához beilleszti az összes ingyenes modellt tartaléknak — ha nem akarsz sajátot összeállítani.</div>
       <div id="mclist"></div>
     </div>
 
@@ -745,6 +747,9 @@ const I18N = {
   fb_dropped:      {hu:'Minden modell elérhetetlen — kihagyva a további fordulókból', en:'All models unavailable — dropped from further rounds'},
   fb_label:        {hu:'Tartalék modellek (vesszővel)', en:'Fallback models (comma-separated)'},
   ph_fallbacks:    {hu:'pl. deepseek/deepseek-chat-v3-0324:free, meta-llama/llama-4-scout:free', en:'e.g. deepseek/deepseek-chat-v3-0324:free, meta-llama/llama-4-scout:free'},
+  apply_free_fb:   {hu:'Ingyenes tartalék lánc mindenkire', en:'Free fallback chain for all'},
+  apply_free_fb_hint:{hu:'Minden Szolgához beilleszti az összes ingyenes modellt tartaléknak — ha nem akarsz sajátot összeállítani.', en:'Adds every free model as a fallback to all Servants — if you don\'t want to build your own.'},
+  t_fb_applied:    {hu:n=>`Ingyenes tartalék lánc beillesztve ${n} Szolgához — mentsd a panel alján`, en:n=>`Free fallback chain added to ${n} Servants — Save below to keep`},
   ttl_sessions:    {hu:'Mentett tanácskozások', en:'Saved deliberations'},
   ttl_clear:       {hu:'Törlés', en:'Clear'},
   ttl_settings:    {hu:'Beállítások', en:'Settings'},
@@ -895,6 +900,41 @@ const ROLES = {
 };
 
 const DEFAULT_ROLES = ['architect','critic','none','security','sysadmin','cost','devil','docs'];
+
+// "Ultimate" free-model fallback chain — providers interleaved so a single provider
+// outage doesn't take out consecutive entries. One click fills every Servant's
+// fallback field with this (minus its own primary).
+const FREE_MODEL_FALLBACKS = [
+  'openai/gpt-oss-120b:free',
+  'z-ai/glm-4.5-air:free',
+  'deepseek/deepseek-v4-flash:free',
+  'nvidia/nemotron-3-super-120b-a12b:free',
+  'minimax/minimax-m2.5:free',
+  'moonshotai/kimi-k2.6:free',
+  'openai/gpt-oss-20b:free',
+  'poolside/laguna-m.1:free',
+  'nvidia/nemotron-3-nano-30b-a3b:free',
+  'nvidia/nemotron-nano-9b-v2:free',
+  'poolside/laguna-xs.2:free',
+  'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free',
+  'nvidia/nemotron-nano-12b-v2-vl:free',
+  'google/gemma-4-31b-it:free',
+  'google/gemma-4-26b-a4b-it:free'
+];
+
+// Fill every Servant's fallback field with the full free chain (minus its own primary).
+// Fields only — the panel's Save commits them like any other edit.
+function applyUltimateFallbacks(){
+  const n=(typeof liveCount==='function')?liveCount():cfg.count;
+  let applied=0;
+  for(let i=0;i<n;i++){
+    const fld=$(`mfb-${i}`); if(!fld)continue;
+    const primary=(($(`mi-${i}`)&&$(`mi-${i}`).value)||'').trim();
+    fld.value=FREE_MODEL_FALLBACKS.filter(x=>x!==primary).join(', ');
+    applied++;
+  }
+  toast_show(t('t_fb_applied',applied));
+}
 
 function baseCouncilIdentity(roleLabel, roleGuidance){
   return `You are ${roleLabel}, a member of the Szolga Tanács (Council of Servants).
@@ -1957,7 +1997,7 @@ function refreshPresetState(){
 async function rawStream(modelId, messages, ctrl, opts={}){
   const start=Date.now();
   const reqBody={model:modelId,messages,stream:true,stream_options:{include_usage:true}};
-  if(opts.maxTokens)reqBody.max_tokens=opts.maxTokens;
+  reqBody.max_tokens=opts.maxTokens||8000;   // ALWAYS send a cap — omitting it makes some providers reserve the full context window as output, which overflows the limit
   const res=await fetch('https://openrouter.ai/api/v1/chat/completions',{
     method:'POST',
     headers:{
@@ -2034,6 +2074,7 @@ async function streamOne(idx,messages){
 
   try{
     const r=await rawStream(m.id,messages,ctrl,{
+      maxTokens:8000,
       onStart(){
         dot.className='sdot active';
         card.className='card streaming';
@@ -2840,6 +2881,7 @@ $('rq').addEventListener('change',()=>{const v=$('rq').value;if(v)$('inp-reader'
 // Model picker
 $('mp-close').addEventListener('click',closeModelPicker);
 $('btn-test-models').addEventListener('click',testConfiguredModels);
+$('btn-apply-fb').addEventListener('click',applyUltimateFallbacks);
 $('btn-sessions').addEventListener('click',openSessions);
 $('ss-close').addEventListener('click',closeSessions);
 $('ss-ovl').addEventListener('click',closeSessions);
