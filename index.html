@@ -222,6 +222,8 @@ input[type=range]::-moz-range-thumb{width:15px;height:15px;border:none;border-ra
 .mcprice{font-family:var(--fm);font-size:9px;color:var(--t3)}
 .mcprice.free{color:var(--green)}
 .mcprice-row{min-height:12px;margin-top:-2px}
+.rfallback{font-family:var(--fm);font-size:10.5px;color:#D8AE63;margin:6px 0;opacity:.95}
+.mcfb{font-size:10.5px!important}
 
 /* MODEL PICKER */
 .mpick{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(.97);width:min(560px,92vw);max-height:82vh;background:var(--s1);border:1px solid var(--b2);border-radius:var(--rl);z-index:320;display:flex;flex-direction:column;opacity:0;pointer-events:none;transition:opacity .16s,transform .16s;box-shadow:0 24px 80px rgba(0,0,0,.6)}
@@ -279,6 +281,8 @@ input[type=range]::-moz-range-thumb{width:15px;height:15px;border:none;border-ra
 .ss-sub{font-family:var(--fm);font-size:9.5px;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ss-load{background:var(--t1);color:var(--bg);border:none;font-family:var(--fd);font-size:11px;font-weight:600;padding:7px 13px;border-radius:var(--r);cursor:pointer;transition:opacity .15s;flex-shrink:0}
 .ss-load:hover{opacity:.85}
+.langtog{display:inline-flex;gap:0}
+.langtog .togbtn{min-width:84px}
 
 /* PAID CONFIRM DIALOG */
 .confirm{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(.97);width:min(440px,92vw);background:var(--s1);border:1px solid var(--b2);border-radius:var(--rl);z-index:340;padding:22px;opacity:0;pointer-events:none;transition:opacity .16s,transform .16s;box-shadow:0 24px 80px rgba(0,0,0,.6)}
@@ -346,17 +350,17 @@ input[type=range]::-moz-range-thumb{width:15px;height:15px;border:none;border-ra
 <header>
   <div class="logo">
     <div class="logo-main">Szolga Tanács</div>
-    <div class="logo-sub">made by Rajczi András</div>
+    <div class="logo-sub" data-i18n="subtitle">made by Rajczi András</div>
   </div>
   <div class="hdr-right">
-    <div class="roundbadge" id="round-badge" aria-live="polite"><span class="rb-dot"></span><span id="rb-text">Forduló 0/3</span></div>
-    <button class="ibt" id="btn-sessions" title="Mentett tanácskozások">
+    <div class="roundbadge" id="round-badge" aria-live="polite"><span class="rb-dot"></span><span id="rb-text" data-i18n="round_badge">Forduló 0/3</span></div>
+    <button class="ibt" id="btn-sessions" data-i18n-title="ttl_sessions" title="Mentett tanácskozások">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
     </button>
-    <button class="ibt" id="btn-clear" title="Törlés">
+    <button class="ibt" id="btn-clear" data-i18n-title="ttl_clear" title="Törlés">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3,6 5,6 21,6"/><path d="M19,6l-1,14H6L5,6"/><path d="M8,6V4h8v2"/></svg>
     </button>
-    <button class="ibt" id="btn-settings" title="Beállítások">
+    <button class="ibt" id="btn-settings" data-i18n-title="ttl_settings" title="Beállítások">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
     </button>
   </div>
@@ -364,24 +368,24 @@ input[type=range]::-moz-range-thumb{width:15px;height:15px;border:none;border-ra
 
 <main>
   <div class="prompt-wrap">
-    <div class="sec-label">Lekérdezés</div>
+    <div class="sec-label" data-i18n="sec_query">Lekérdezés</div>
     <div class="pbox">
-      <textarea id="prompt" rows="4" placeholder="Írja be kérdését — az összes modell párhuzamosan fog válaszolni..."></textarea>
+      <textarea id="prompt" rows="4" data-i18n-ph="ph_prompt_par" placeholder="Írja be kérdését — az összes modell párhuzamosan fog válaszolni..."></textarea>
       <div class="pbar">
         <div class="pbar-left">
-          <button class="attachbtn" id="btn-attach" title="Dokumentum csatolása (PDF, Word, szöveg, kép)">
+          <button class="attachbtn" id="btn-attach" data-i18n-title="attach_t" title="Dokumentum csatolása (PDF, Word, szöveg, kép)">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
           </button>
-          <span class="pmeta" id="char-count">0 karakter</span>
-          <div class="modetog" role="group" aria-label="Mód kiválasztása">
-            <button class="modebtn" id="mode-par" title="Minden modell egymástól függetlenül válaszol">Párhuzamos</button>
-            <button class="modebtn" id="mode-council" title="A Szolgák több fordulóban megvitatják a kérdést">Tanács</button>
+          <span class="pmeta" id="char-count">0 <span data-i18n="chars">karakter</span></span>
+          <div class="modetog" role="group" data-i18n-aria="ttl_mode_aria" aria-label="Mód kiválasztása">
+            <button class="modebtn" id="mode-par" data-i18n-title="mode_par_t" title="Minden modell egymástól függetlenül válaszol" data-i18n="mode_par">Párhuzamos</button>
+            <button class="modebtn" id="mode-council" data-i18n-title="mode_cnc_t" title="A Szolgák több fordulóban megvitatják a kérdést" data-i18n="mode_cnc">Tanács</button>
           </div>
         </div>
         <div class="pacts">
-          <button class="btn btn-g" id="btn-stopround" style="display:none" title="A jelenlegi forduló befejezése után megáll">Forduló után megáll</button>
-          <button class="btn btn-g" id="btn-stop" style="display:none">Leállítás</button>
-          <button class="btn btn-p" id="btn-send">Elküldés <kbd>Ctrl+↵</kbd></button>
+          <button class="btn btn-g" id="btn-stopround" style="display:none" title="A jelenlegi forduló befejezése után megáll" data-i18n="stop_after">Forduló után megáll</button>
+          <button class="btn btn-g" id="btn-stop" style="display:none" data-i18n="stop">Leállítás</button>
+          <button class="btn btn-p" id="btn-send"><span data-i18n="send">Elküldés</span> <kbd>Ctrl+↵</kbd></button>
         </div>
       </div>
     </div>
@@ -391,7 +395,7 @@ input[type=range]::-moz-range-thumb{width:15px;height:15px;border:none;border-ra
 
   <div class="res-sect">
     <div class="sec-row">
-      <div class="sec-label">Válaszok</div>
+      <div class="sec-label" data-i18n="sec_responses">Válaszok</div>
       <div class="tally" id="tally">—</div>
     </div>
     <div id="grid"></div>
@@ -399,10 +403,10 @@ input[type=range]::-moz-range-thumb{width:15px;height:15px;border:none;border-ra
 </main>
 
 <div class="sbar">
-  <div class="sbi"><div class="sbdot"></div><span id="sb-status" aria-live="polite">Készen áll</span></div>
+  <div class="sbi"><div class="sbdot"></div><span id="sb-status" aria-live="polite" data-i18n="sb_ready">Készen áll</span></div>
   <div class="sbi" id="sb-tokens"><div class="sbdot"></div><span id="sb-tok-text">≈ $0.000 · 0 token</span></div>
-  <div class="sbi" id="sb-conv"><div class="sbdot"></div><span id="sb-conv-text">Konvergencia —</span></div>
-  <div class="sbi" id="sb-mem" title="Kattintson a tanács emlékezetének ürítéséhez"><div class="sbdot"></div><span id="sb-mem-text">Tanács emlékezet: 0 témakör</span></div>
+  <div class="sbi" id="sb-conv"><div class="sbdot"></div><span id="sb-conv-text" data-i18n="sb_conv">Konvergencia —</span></div>
+  <div class="sbi" id="sb-mem" data-i18n-title="ttl_mem_clear" title="Kattintson a tanács emlékezetének ürítéséhez"><div class="sbdot"></div><span id="sb-mem-text" data-i18n="sb_mem">Tanács emlékezet: 0 témakör</span></div>
   <div class="sbi"><div class="sbdot"></div><span>OpenRouter API</span></div>
 </div>
 </div>
@@ -413,7 +417,7 @@ input[type=range]::-moz-range-thumb{width:15px;height:15px;border:none;border-ra
 <!-- SETTINGS PANEL -->
 <div class="panel" id="panel">
   <div class="ph">
-    <span class="ptitle">Beállítások</span>
+    <span class="ptitle" data-i18n="settings">Beállítások</span>
     <button class="ibt" id="btn-pclose">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
     </button>
@@ -421,9 +425,17 @@ input[type=range]::-moz-range-thumb{width:15px;height:15px;border:none;border-ra
   <div class="pbody">
 
     <div class="fg">
-      <div class="fgl">API Konfiguráció</div>
+      <div class="fgl" data-i18n="lang_label">Nyelv</div>
+      <div class="tog langtog">
+        <button class="togbtn" id="lang-hu" data-l="hu">Magyar</button>
+        <button class="togbtn" id="lang-en" data-l="en">English</button>
+      </div>
+    </div>
+
+    <div class="fg">
+      <div class="fgl" data-i18n="fg_api">API Konfiguráció</div>
       <div class="field">
-        <label class="flbl">OpenRouter API Kulcs</label>
+        <label class="flbl" data-i18n="lbl_key">OpenRouter API Kulcs</label>
         <div class="kwrap">
           <input type="password" class="finp" id="inp-key" placeholder="sk-or-v1-...">
           <button class="ktog" id="ktog">
@@ -434,60 +446,60 @@ input[type=range]::-moz-range-thumb{width:15px;height:15px;border:none;border-ra
     </div>
 
     <div class="fg">
-      <div class="fgl">Dokumentum-olvasás</div>
+      <div class="fgl" data-i18n="fg_docread">Dokumentum-olvasás</div>
       <div class="field">
-        <label class="flbl">Olvasó modell (képek / szkennelt PDF átírásához)</label>
+        <label class="flbl" data-i18n="lbl_reader">Olvasó modell (képek / szkennelt PDF átírásához)</label>
         <input type="text" class="finp" id="inp-reader" placeholder="pl. google/gemini-2.0-flash-001">
-        <select class="qpick" id="rq" title="Gyors választás"><optgroup label="Vízió-képes modellek" id="rq-group"></optgroup></select>
+        <select class="qpick" id="rq" data-i18n-title="ttl_quickpick" title="Gyors választás"><optgroup label="Vízió-képes modellek" data-i18n-optg="optg_vision" id="rq-group"></optgroup></select>
       </div>
     </div>
 
     <div class="fg">
-      <div class="fgl">Tanács Beállítások</div>
+      <div class="fgl" data-i18n="fg_council">Tanács Beállítások</div>
       <div class="field">
         <div class="fieldrow">
-          <label class="flbl">Tanács mód</label>
+          <label class="flbl" data-i18n="lbl_cncmode">Tanács mód</label>
           <div class="tog" id="set-mode-tog">
-            <button class="togbtn" data-v="off" id="set-mode-off">Ki</button>
-            <button class="togbtn" data-v="on" id="set-mode-on">Be</button>
+            <button class="togbtn" data-v="off" id="set-mode-off" data-i18n="off">Ki</button>
+            <button class="togbtn" data-v="on" id="set-mode-on" data-i18n="on">Be</button>
           </div>
         </div>
       </div>
       <div class="field">
-        <label class="flbl">Maximum fordulók</label>
+        <label class="flbl" data-i18n="lbl_maxrounds">Maximum fordulók</label>
         <div class="rwrap"><input type="range" id="inp-rounds" min="1" max="5" value="3"><span class="rval" id="rounds-val">3</span></div>
       </div>
       <div class="field">
-        <label class="flbl">Token limit (összesen)</label>
+        <label class="flbl" data-i18n="lbl_tokbudget">Token limit (összesen)</label>
         <input type="text" inputmode="numeric" class="finp" id="inp-tokbudget" value="50000">
       </div>
       <div class="field">
-        <label class="flbl">Max token / hívás</label>
+        <label class="flbl" data-i18n="lbl_tokcall">Max token / hívás</label>
         <input type="text" inputmode="numeric" class="finp" id="inp-tokcall" value="1500">
       </div>
       <div class="field">
         <div class="fieldrow">
-          <label class="flbl">Konvergencia érzékelés</label>
+          <label class="flbl" data-i18n="lbl_conv">Konvergencia érzékelés</label>
           <div class="tog" id="set-conv-tog">
-            <button class="togbtn" data-v="off" id="set-conv-off">Ki</button>
-            <button class="togbtn" data-v="on" id="set-conv-on">Be</button>
+            <button class="togbtn" data-v="off" id="set-conv-off" data-i18n="off">Ki</button>
+            <button class="togbtn" data-v="on" id="set-conv-on" data-i18n="on">Be</button>
           </div>
         </div>
       </div>
       <div class="field">
-        <label class="flbl">Konvergencia küszöb</label>
+        <label class="flbl" data-i18n="lbl_convth">Konvergencia küszöb</label>
         <div class="rwrap"><input type="range" id="inp-convth" min="0" max="1" step="0.05" value="0.70"><span class="rval" id="convth-val">0.70</span></div>
       </div>
       <div class="field">
-        <label class="flbl">Konszenzus modell</label>
+        <label class="flbl" data-i18n="lbl_consensus">Konszenzus modell</label>
         <select class="qpick" id="inp-consensus"></select>
       </div>
     </div>
 
     <div class="fg">
-      <div class="fgl">Modellek Száma</div>
+      <div class="fgl" data-i18n="fg_count">Modellek Száma</div>
       <div class="field">
-        <label class="flbl">Hány AI modellt (Szolgát) kérdezzen meg (1–8)</label>
+        <label class="flbl" data-i18n="lbl_count">Hány AI modellt (Szolgát) kérdezzen meg (1–8)</label>
         <div class="rwrap">
           <input type="range" id="inp-cnt" min="1" max="8" value="3">
           <span class="rval" id="cnt-val">3</span>
@@ -496,27 +508,27 @@ input[type=range]::-moz-range-thumb{width:15px;height:15px;border:none;border-ra
     </div>
 
     <div class="fg">
-      <div class="fgl">Gyors összeállítás</div>
+      <div class="fgl" data-i18n="fg_presets">Gyors összeállítás</div>
       <div class="presets">
-        <button class="psbtn" id="ps-free" type="button"><span class="ps-t">Ingyenes</span><span class="ps-s">csak $0 modellek</span></button>
-        <button class="psbtn" id="ps-cheap" type="button"><span class="ps-t">Költséghatékony</span><span class="ps-s">legolcsóbb fizetős</span></button>
-        <button class="psbtn" id="ps-custom" type="button"><span class="ps-t">Egyéni</span><span class="ps-s">mentett összeállítás</span></button>
+        <button class="psbtn" id="ps-free" type="button"><span class="ps-t" data-i18n="ps_free">Ingyenes</span><span class="ps-s" data-i18n="ps_free_s">csak $0 modellek</span></button>
+        <button class="psbtn" id="ps-cheap" type="button"><span class="ps-t" data-i18n="ps_cheap">Költséghatékony</span><span class="ps-s" data-i18n="ps_cheap_s">legolcsóbb fizetős</span></button>
+        <button class="psbtn" id="ps-custom" type="button"><span class="ps-t" data-i18n="ps_custom">Egyéni</span><span class="ps-s" data-i18n="ps_custom_s">mentett összeállítás</span></button>
       </div>
-      <button class="btn-test" id="ps-save" type="button" style="margin-top:8px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>Jelenlegi mentése egyéniként</button>
-      <div class="test-hint">A presetek a beállított Szolga-számot töltik fel. Az árakat az élő modell-listából veszi.</div>
+      <button class="btn-test" id="ps-save" type="button" style="margin-top:8px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg><span data-i18n="ps_save">Jelenlegi mentése egyéniként</span></button>
+      <div class="test-hint" data-i18n="presets_hint">A presetek a beállított Szolga-számot töltik fel. Az árakat az élő modell-listából veszi.</div>
     </div>
 
     <div class="fg">
-      <div class="fgl">Modell Konfiguráció</div>
-      <button class="btn-test" id="btn-test-models" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg>Modellek tesztelése</button>
-      <div class="test-hint">Megpingeli a beállított modelleket; a pötty mutatja, melyik elérhető most.</div>
+      <div class="fgl" data-i18n="fg_models">Modell Konfiguráció</div>
+      <button class="btn-test" id="btn-test-models" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg><span data-i18n="test_models">Modellek tesztelése</span></button>
+      <div class="test-hint" data-i18n="test_hint">Megpingeli a beállított modelleket; a pötty mutatja, melyik elérhető most.</div>
       <div id="mclist"></div>
     </div>
 
   </div>
   <div class="pfoot">
-    <button class="btn btn-p" id="btn-save" style="flex:1">Mentés</button>
-    <button class="btn btn-g" id="btn-cancel">Mégse</button>
+    <button class="btn btn-p" id="btn-save" style="flex:1" data-i18n="save">Mentés</button>
+    <button class="btn btn-g" id="btn-cancel" data-i18n="cancel">Mégse</button>
   </div>
 </div>
 
@@ -524,32 +536,32 @@ input[type=range]::-moz-range-thumb{width:15px;height:15px;border:none;border-ra
 <div class="ovl" id="mp-ovl"></div>
 <div class="mpick" id="mp">
   <div class="mp-head">
-    <div class="mp-title">Modell kiválasztása</div>
-    <button class="ibt" id="mp-close" title="Bezárás"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+    <div class="mp-title" data-i18n="mp_title">Modell kiválasztása</div>
+    <button class="ibt" id="mp-close" data-i18n-title="ttl_close" title="Bezárás"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
   </div>
   <div class="mp-tools">
-    <input type="text" class="finp" id="mp-search" placeholder="Keresés (pl. deepseek, gemini, claude)…" autocomplete="off">
+    <input type="text" class="finp" id="mp-search" data-i18n-ph="ph_search" placeholder="Keresés (pl. deepseek, gemini, claude)…" autocomplete="off">
     <div class="mp-filters" role="group">
-      <button class="mp-fbtn active" data-filter="all">Mind</button>
-      <button class="mp-fbtn" data-filter="free">Ingyenes</button>
-      <button class="mp-fbtn" data-filter="paid">Fizetős</button>
+      <button class="mp-fbtn active" data-filter="all" data-i18n="filter_all">Mind</button>
+      <button class="mp-fbtn" data-filter="free" data-i18n="filter_free">Ingyenes</button>
+      <button class="mp-fbtn" data-filter="paid" data-i18n="filter_paid">Fizetős</button>
     </div>
   </div>
-  <div class="mp-legend"><span>olcsóbb</span><div class="mp-grad"></div><span>drágább</span></div>
+  <div class="mp-legend"><span data-i18n="cheaper">olcsóbb</span><div class="mp-grad"></div><span data-i18n="pricier">drágább</span></div>
   <div class="mp-list" id="mp-list"></div>
-  <div class="mp-foot"><span id="mp-count"></span><span class="mp-hint">a sáv színe az árszintet jelzi · ár / millió token (be+ki)</span></div>
+  <div class="mp-foot"><span id="mp-count"></span><span class="mp-hint" data-i18n="mp_hint">a sáv színe az árszintet jelzi · ár / millió token (be+ki)</span></div>
 </div>
 
 <!-- SESSIONS -->
 <div class="ovl" id="ss-ovl"></div>
 <div class="mpick" id="ss">
   <div class="mp-head">
-    <div class="mp-title">Mentett tanácskozások</div>
-    <button class="ibt" id="ss-close" title="Bezárás"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+    <div class="mp-title" data-i18n="ss_title">Mentett tanácskozások</div>
+    <button class="ibt" id="ss-close" data-i18n-title="ttl_close" title="Bezárás"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
   </div>
   <div class="mp-tools">
-    <button class="btn-test" id="ss-save" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>Jelenlegi tanácskozás mentése</button>
-    <div class="test-hint">A mentett állapot később visszatölthető — modellek, válaszok, kérdés és összefoglaló is —, új lekérdezés nélkül (0 token).</div>
+    <button class="btn-test" id="ss-save" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg><span data-i18n="ss_save">Jelenlegi tanácskozás mentése</span></button>
+    <div class="test-hint" data-i18n="ss_hint">A mentett állapot később visszatölthető — modellek, válaszok, kérdés és összefoglaló is —, új lekérdezés nélkül (0 token).</div>
   </div>
   <div class="mp-list" id="ss-list"></div>
 </div>
@@ -557,18 +569,263 @@ input[type=range]::-moz-range-thumb{width:15px;height:15px;border:none;border-ra
 <!-- PAID CONFIRM -->
 <div class="ovl" id="cf-ovl"></div>
 <div class="confirm" id="cf">
-  <div class="cf-head"><span class="cf-warn">⚠</span> Vigyázz, báttya!</div>
-  <div class="cf-msg">Ez a futás <b>fizetős</b> lesz — <span id="cf-count">0</span> modell pénzbe kerül, nem ingyenes. Biztos folytatod?</div>
+  <div class="cf-head"><span class="cf-warn">⚠</span> <span data-i18n="cf_head">Vigyázz, báttya!</span></div>
+  <div class="cf-msg"><span data-i18n="cf_msg_a">Ez a futás </span><b data-i18n="cf_msg_paid">fizetős</b><span data-i18n="cf_msg_b"> lesz — </span><span id="cf-count">0</span><span data-i18n="cf_msg_c"> modell pénzbe kerül, nem ingyenes. Biztos folytatod?</span></div>
   <ul class="cf-models" id="cf-list"></ul>
   <div class="cf-acts">
-    <button class="btn btn-g" id="cf-no">Dehogy!</button>
-    <button class="btn btn-p" id="cf-yes">Persze!</button>
+    <button class="btn btn-g" id="cf-no" data-i18n="cf_no">Dehogy!</button>
+    <button class="btn btn-p" id="cf-yes" data-i18n="cf_yes">Persze!</button>
   </div>
 </div>
 
 <div id="toast"></div>
 
 <script>
+// ════════════════════════════════════════════════════════════
+// I18N — language dictionary, t(), applyLang()
+// ════════════════════════════════════════════════════════════
+let lang = localStorage.getItem('szolgatanacs-lang') || (navigator.language||'').toLowerCase().startsWith('hu') ? (localStorage.getItem('szolgatanacs-lang')||'hu') : (localStorage.getItem('szolgatanacs-lang')||'en');
+if(localStorage.getItem('szolgatanacs-lang'))lang=localStorage.getItem('szolgatanacs-lang');
+else lang=(navigator.language||'').toLowerCase().startsWith('hu')?'hu':'en';
+
+const I18N = {
+  // header / prompt area
+  subtitle:        {hu:'made by Rajczi András', en:'made by Rajczi András'},
+  round_badge:     {hu:'Forduló 0/3', en:'Round 0/3'},
+  sec_query:       {hu:'Lekérdezés', en:'Query'},
+  ph_prompt_par:   {hu:'Írja be kérdését — az összes modell párhuzamosan fog válaszolni...', en:'Type your question — all models will answer in parallel...'},
+  ph_prompt_cnc:   {hu:'Tegye fel kérdését a tanácsnak — a Szolgák több fordulóban megvitatják, majd összefoglalót adnak...', en:'Ask the council — the Servants debate over several rounds, then summarize...'},
+  mode_par:        {hu:'Párhuzamos', en:'Parallel'},
+  mode_cnc:        {hu:'Tanács', en:'Council'},
+  mode_par_t:      {hu:'Minden modell egymástól függetlenül válaszol', en:'Each model answers independently'},
+  mode_cnc_t:      {hu:'A Szolgák több fordulóban megvitatják a kérdést', en:'The Servants debate over several rounds'},
+  stop_after:      {hu:'Forduló után megáll', en:'Stop after round'},
+  stop:            {hu:'Leállítás', en:'Stop'},
+  send:            {hu:'Elküldés', en:'Send'},
+  sec_responses:   {hu:'Válaszok', en:'Responses'},
+  sb_ready:        {hu:'Készen áll', en:'Ready'},
+  sb_conv:         {hu:'Konvergencia —', en:'Convergence —'},
+  sb_mem:          {hu:'Tanács emlékezet: 0 témakör', en:'Council memory: 0 topics'},
+  attach_t:        {hu:'Dokumentum csatolása (PDF, Word, szöveg, kép)', en:'Attach document (PDF, Word, text, image)'},
+  // settings
+  settings:        {hu:'Beállítások', en:'Settings'},
+  fg_api:          {hu:'API Konfiguráció', en:'API Configuration'},
+  lbl_key:         {hu:'OpenRouter API Kulcs', en:'OpenRouter API Key'},
+  fg_docread:      {hu:'Dokumentum-olvasás', en:'Document reading'},
+  lbl_reader:      {hu:'Olvasó modell (képek / szkennelt PDF átírásához)', en:'Reader model (for images / scanned PDF transcription)'},
+  optg_vision:     {hu:'Vízió-képes modellek', en:'Vision-capable models'},
+  fg_council:      {hu:'Tanács Beállítások', en:'Council Settings'},
+  lbl_cncmode:     {hu:'Tanács mód', en:'Council mode'},
+  off:             {hu:'Ki', en:'Off'},
+  on:              {hu:'Be', en:'On'},
+  lbl_maxrounds:   {hu:'Maximum fordulók', en:'Maximum rounds'},
+  lbl_tokbudget:   {hu:'Token limit (összesen)', en:'Token limit (total)'},
+  lbl_tokcall:     {hu:'Max token / hívás', en:'Max tokens / call'},
+  lbl_conv:        {hu:'Konvergencia érzékelés', en:'Convergence detection'},
+  lbl_convth:      {hu:'Konvergencia küszöb', en:'Convergence threshold'},
+  lbl_consensus:   {hu:'Konszenzus modell', en:'Consensus model'},
+  consensus_auto:  {hu:'${t("consensus_auto")}', en:'Automatic (Summarizer role / model 1)'},
+  fg_count:        {hu:'Modellek Száma', en:'Number of Models'},
+  lbl_count:       {hu:'Hány AI modellt (Szolgát) kérdezzen meg (1–8)', en:'How many AI models (Servants) to consult (1–8)'},
+  fg_presets:      {hu:'Gyors összeállítás', en:'Quick setup'},
+  ps_free:         {hu:'Ingyenes', en:'Free'},
+  ps_free_s:       {hu:'csak $0 modellek', en:'$0 models only'},
+  ps_cheap:        {hu:'Költséghatékony', en:'Cost-effective'},
+  ps_cheap_s:      {hu:'legolcsóbb fizetős', en:'cheapest paid'},
+  ps_custom:       {hu:'Egyéni', en:'Custom'},
+  ps_custom_s:     {hu:'mentett összeállítás', en:'saved setup'},
+  ps_save:         {hu:'Jelenlegi mentése egyéniként', en:'Save current as custom'},
+  presets_hint:    {hu:'A presetek a beállított Szolga-számot töltik fel. Az árakat az élő modell-listából veszi.', en:'Presets fill the configured number of Servants. Prices come from the live model list.'},
+  fg_models:       {hu:'Modell Konfiguráció', en:'Model Configuration'},
+  test_models:     {hu:'Modellek tesztelése', en:'Test models'},
+  test_hint:       {hu:'Megpingeli a beállított modelleket; a pötty mutatja, melyik elérhető most.', en:'Pings the configured models; the dot shows which are available now.'},
+  save:            {hu:'Mentés', en:'Save'},
+  cancel:          {hu:'Mégse', en:'Cancel'},
+  ph_name:         {hu:'Megjelenítési név (pl. GPT-4o)', en:'Display name (e.g. GPT-4o)'},
+  ph_id:           {hu:'Model ID (pl. openai/gpt-4o)', en:'Model ID (e.g. openai/gpt-4o)'},
+  browse_models:   {hu:'Modellek böngészése', en:'Browse models'},
+  role_label:      {hu:'Szerep a tanácsban', en:'Role in the council'},
+  ph_rolecustom:   {hu:'Egyéni szerep (opcionális — felülírja a fentit)', en:'Custom role (optional — overrides the above)'},
+  // model picker
+  mp_title:        {hu:'Modell kiválasztása', en:'Select model'},
+  ph_search:       {hu:'Keresés (pl. deepseek, gemini, claude)…', en:'Search (e.g. deepseek, gemini, claude)…'},
+  filter_all:      {hu:'Mind', en:'All'},
+  filter_free:     {hu:'Ingyenes', en:'Free'},
+  filter_paid:     {hu:'Fizetős', en:'Paid'},
+  cheaper:         {hu:'olcsóbb', en:'cheaper'},
+  pricier:         {hu:'drágább', en:'pricier'},
+  mp_hint:         {hu:'a sáv színe az árszintet jelzi · ár / millió token (be+ki)', en:'bar color shows price level · price / million tokens (in+out)'},
+  // sessions
+  ss_title:        {hu:'Mentett tanácskozások', en:'Saved deliberations'},
+  ss_save:         {hu:'Jelenlegi tanácskozás mentése', en:'Save current deliberation'},
+  ss_hint:         {hu:'A mentett állapot később visszatölthető — modellek, válaszok, kérdés és összefoglaló is —, új lekérdezés nélkül (0 token).', en:'A saved state can be restored later — models, answers, question and summary — with no new query (0 tokens).'},
+  // confirm
+  cf_head:         {hu:'Vigyázz, báttya!', en:'Heads up!'},
+  cf_msg_a:        {hu:'Ez a futás ', en:'This run will be '},
+  cf_msg_paid:     {hu:'fizetős', en:'paid'},
+  cf_msg_b:        {hu:' lesz — ', en:' — '},
+  cf_msg_c:        {hu:' modell pénzbe kerül, nem ingyenes. Biztos folytatod?', en:' model(s) cost money, not free. Continue?'},
+  cf_no:           {hu:'Dehogy!', en:'No way!'},
+  cf_yes:          {hu:'Persze!', en:'Sure!'},
+  // dynamic / cards
+  empty_grid:      {hu:'Adja hozzá a modelleket a beállításokban', en:'Add models in settings'},
+  no_model:        {hu:'nincs modell beállítva', en:'no model configured'},
+  idle:            {hu:'üresjárat', en:'idle'},
+  waiting:         {hu:'— várakozás —', en:'— waiting —'},
+  round_n:         {hu:'Forduló ', en:'Round '},
+  summary_head:    {hu:'${t("summary_head")}', en:'COUNCIL OF SERVANTS — SUMMARY'},
+  price_unknown:   {hu:'ár ismeretlen', en:'price unknown'},
+  free_word:       {hu:'ingyenes', en:'free'},
+  no_results:      {hu:'Nincs találat.', en:'No results.'},
+  load:            {hu:'Betöltés', en:'Load'},
+  model_n:         {hu:'Modell ', en:'Model '},
+  chars:           {hu:'karakter', en:'chars'},
+  // toasts & misc
+  t_need_prompt:   {hu:'Kérjük, adjon meg lekérdezést', en:'Please enter a query'},
+  t_need_key:      {hu:'Adja meg az API kulcsot a beállításokban', en:'Enter your API key in settings'},
+  t_missing_id:    {hu:'Egy vagy több modell ID hiányzik', en:'One or more model IDs are missing'},
+  t_council_busy:  {hu:'A tanács már ülésezik', en:'The council is already in session'},
+  t_saved:         {hu:'Tanácskozás elmentve ✓', en:'Deliberation saved ✓'},
+  t_nothing_save:  {hu:'Nincs menthető tanácskozás — előbb futtass egy lekérdezést', en:'Nothing to save — run a query first'},
+  t_restored:      {hu:'Tanácskozás betöltve — 0 token', en:'Deliberation restored — 0 tokens'},
+  t_mem_empty:     {hu:'A tanács emlékezete már üres', en:'Council memory is already empty'},
+  t_mem_cleared:   {hu:'A tanács emlékezete törölve', en:'Council memory cleared'},
+  t_doc_max:       {hu:'Legfeljebb 8 dokumentum csatolható', en:'Up to 8 documents can be attached'},
+  t_test_keyfirst: {hu:'Előbb add meg az OpenRouter API kulcsot', en:'Enter your OpenRouter API key first'},
+  t_no_models_list:{hu:'Nem sikerült betölteni a modell-listát (internet szükséges)', en:'Could not load the model list (internet required)'},
+  t_loading_models:{hu:'Modell-lista betöltése…', en:'Loading model list…'},
+  t_custom_none:   {hu:'Még nincs egyéni preset — állítsd be a modelleket, majd „Jelenlegi mentése egyéniként”', en:'No custom preset yet — set up models, then “Save current as custom”'},
+  t_custom_loaded: {hu:'Egyéni preset betöltve ✓', en:'Custom preset loaded ✓'},
+  t_custom_nosave: {hu:'Nincs mentendő modell', en:'No model to save'},
+  t_save_failed:   {hu:'Mentés sikertelen', en:'Save failed'},
+  mem_topics:      {hu:t=>`Tanács emlékezet: ${t} témakör`, en:t=>`Council memory: ${t} topic${t===1?'':'s'}`},
+  conv_pct:        {hu:p=>`Konvergencia ${p}%`, en:p=>`Convergence ${p}%`},
+  round_cur:       {hu:(c,m)=>`Forduló ${c}/${m}`, en:(c,m)=>`Round ${c}/${m}`},
+  st_idle:         {hu:'Készen áll', en:'Ready'},
+  st_running:      {hu:'Fut...', en:'Running...'},
+  st_converged:    {hu:'A tanács megállapodott ✓', en:'The council has converged ✓'},
+  st_budget:       {hu:'Token-keret kimerült', en:'Token budget exhausted'},
+  st_stopped:      {hu:'Leállítva', en:'Stopped'},
+  st_complete:     {hu:'Tanács kész ✓', en:'Council complete ✓'},
+  st_done:         {hu:'Kész', en:'Done'},
+  conv_reached:    {hu:(p,r)=>`Konvergencia ${p}% — a tanács a ${r}. fordulóban megállapodott`, en:(p,r)=>`Convergence ${p}% — the council agreed in round ${r}`},
+  lang_label:      {hu:'Nyelv', en:'Language'},
+  models_active:   {hu:n=>`${n} modell aktív`, en:n=>`${n} model${n===1?'':'s'} active`},
+  tally_council:   {hu:(n,r)=>`${n} Szolga · max ${r} forduló`, en:(n,r)=>`${n} Servants · max ${r} rounds`},
+  cst_streaming:   {hu:r=>`streamelés... · ${r}. f.`, en:r=>`streaming... · r${r}`},
+  cst_done:        {hu:r=>`kész ✓ · ${r}. f.`, en:r=>`done ✓ · r${r}`},
+  cst_timeout:     {hu:'időtúllépés', en:'timeout'},
+  cst_aborted:     {hu:'leállítva', en:'aborted'},
+  sum_meta:        {hu:(r,n)=>`${r} forduló · ${n} Szolga · ≈ $${CostController.estimatedCost.toFixed(3)} · ${nf(CostController.totalTokens)} token`, en:(r,n)=>`${r} rounds · ${n} Servants · ≈ $${CostController.estimatedCost.toFixed(3)} · ${nf(CostController.totalTokens)} tokens`},
+  mp_loading:      {hu:'Árlista betöltése folyamatban… próbáld újra pár másodperc múlva (internetkapcsolat szükséges).', en:'Loading price list… try again in a few seconds (internet required).'},
+  test_running:    {hu:'Tesztelés folyamatban…', en:'Testing…'},
+  test_free_prog:  {hu:(d,n)=>`Ingyenes modellek tesztelése… (${d}/${n})`, en:(d,n)=>`Testing free models… (${d}/${n})`},
+  test_result:     {hu:(ok,down,lim,extra)=>`Teszt kész: ${ok} elérhető, ${down} nem${lim?`, ${lim} rate-limit`:''}${extra?` · +${extra} ingyenes ellenőrizve`:''}`, en:(ok,down,lim,extra)=>`Test done: ${ok} available, ${down} down${lim?`, ${lim} rate-limited`:''}${extra?` · +${extra} free checked`:''}`},
+  t_storage_full:  {hu:'Mentés sikertelen — a tárhely megtelt; törölj néhány régi mentést', en:'Save failed — storage is full; delete some old saves'},
+  ss_sub:          {hu:(d,m,c,r,cons)=>`${d} · ${m} · ${c} Szolga${r?` · ${r} ford.`:''}${cons?' · összefoglalóval':''}`, en:(d,m,c,r,cons)=>`${d} · ${m} · ${c} Servants${r?` · ${r} rounds`:''}${cons?' · with summary':''}`},
+  ss_none:         {hu:'Még nincs mentett tanácskozás. Futtass egy lekérdezést, majd nyomd meg a „Jelenlegi mentése” gombot.', en:'No saved deliberations yet. Run a query, then press “Save current”.'},
+  ss_unnamed:      {hu:'Névtelen', en:'Untitled'},
+  mode_council_w:  {hu:'Tanács', en:'Council'},
+  mode_parallel_w: {hu:'Párhuzamos', en:'Parallel'},
+  with_summary:    {hu:'összefoglalóval', en:'with summary'},
+  fb_trying:       {hu:m=>`Elsődleges nem elérhető — tartalék: ${m}`, en:m=>`Primary unavailable — fallback: ${m}`},
+  fb_exhausted:    {hu:'(minden tartalék kimerült)', en:'(all fallbacks exhausted)'},
+  fb_label:        {hu:'Tartalék modellek (vesszővel)', en:'Fallback models (comma-separated)'},
+  ph_fallbacks:    {hu:'pl. deepseek/deepseek-chat-v3-0324:free, meta-llama/llama-4-scout:free', en:'e.g. deepseek/deepseek-chat-v3-0324:free, meta-llama/llama-4-scout:free'},
+  ttl_sessions:    {hu:'Mentett tanácskozások', en:'Saved deliberations'},
+  ttl_clear:       {hu:'Törlés', en:'Clear'},
+  ttl_settings:    {hu:'Beállítások', en:'Settings'},
+  ttl_mode_aria:   {hu:'Mód kiválasztása', en:'Select mode'},
+  ttl_quickpick:   {hu:'Gyors választás', en:'Quick select'},
+  ttl_close:       {hu:'Bezárás', en:'Close'},
+  ttl_abort:       {hu:'Leállítás', en:'Stop'},
+  ttl_copy:        {hu:'Másolás', en:'Copy'},
+  ttl_export:      {hu:'Jegyzőkönyv letöltése (.md)', en:'Download transcript (.md)'},
+  ttl_delete:      {hu:'Törlés', en:'Delete'},
+  ttl_mem_clear:   {hu:'Kattintson a tanács emlékezetének ürítéséhez', en:'Click to clear the council memory'},
+  st_loaded:       {hu:'betöltve', en:'loaded'},
+  st_untested:     {hu:'nem tesztelt', en:'untested'},
+  st_avail:        {hu:'elérhető', en:'available'},
+  st_testing:      {hu:'tesztelés…', en:'testing…'},
+  status_prefix:   {hu:'Állapot: ', en:'Status: '},
+  cst_connecting:  {hu:'csatlakozás...', en:'connecting...'},
+  cst_streaming_p: {hu:'streamelés...', en:'streaming...'},
+  cst_done_turns:  {hu:n=>`kész ✓ · ${n}. ford.`, en:n=>`done ✓ · turn ${n}`},
+  cst_done_simple: {hu:'kész ✓', en:'done ✓'},
+  cst_stopped:     {hu:'leállítva', en:'stopped'},
+  ph_stopped:      {hu:'— leállítva —', en:'— stopped —'},
+  err_prefix:      {hu:'Hiba: ', en:'Error: '},
+  running_n:       {hu:n=>`${n} modell fut...`, en:n=>`${n} model${n===1?'':'s'} running...`},
+  sum_making:      {hu:'Összefoglaló készítése...', en:'Generating summary...'},
+  ph_sum_stopped:  {hu:'— összefoglaló leállítva —', en:'— summary stopped —'},
+  sum_failed:      {hu:m=>`Összefoglaló sikertelen: ${m}`, en:m=>`Summary failed: ${m}`},
+  t_budget_sum:    {hu:'Token-keret kimerült — a tanács összefoglalót készít', en:'Token budget exhausted — the council is summarizing'},
+  council_round_run:{hu:r=>`Tanács — ${r}. forduló fut...`, en:r=>`Council — round ${r} running...`},
+  t_all_failed:    {hu:'A tanács összes Szolgája meghibásodott', en:'All Servants in the council failed'},
+  t_council_stopped:{hu:'A tanács a kérésre megállt', en:'The council stopped on request'},
+  t_stop_after:    {hu:'A tanács a jelenlegi forduló után megáll', en:'The council will stop after the current round'},
+  t_no_copy:       {hu:'Nincs másolható tartalom', en:'Nothing to copy'},
+  t_copied:        {hu:'Vágólapra másolva ✓', en:'Copied to clipboard ✓'},
+  t_transcript_dl: {hu:'Jegyzőkönyv letöltve ✓', en:'Transcript downloaded ✓'},
+  t_no_models_short:{hu:'Nincs elég modell a listában', en:'Not enough models in the list'},
+  t_preset_free_short:{hu:(n)=>`Csak ${n} elérhető`, en:(n)=>`Only ${n} available`},
+  t_preset_free:   {hu:(a,c)=>`Csak ${a} elérhető ingyenes modell van, de ${c} Szolga kell — csökkentsd a Szolgák számát vagy válassz fizetőst`, en:(a,c)=>`Only ${a} available free models, but ${c} Servants are needed — reduce the Servant count or pick paid models`},
+  t_preset_free_ok:{hu:(c)=>`Ingyenes preset betöltve — ${c} ingyenes Szolga ✓`, en:(c)=>`Free preset loaded — ${c} free Servants ✓`},
+  t_preset_cheap_ok:{hu:(p)=>`Költséghatékony preset betöltve — legdrágább: $${p}/M ✓`, en:(p)=>`Cost-effective preset loaded — priciest: $${p}/M ✓`},
+  t_preset_saved:  {hu:(n)=>`Egyéni preset elmentve (${n} modell) ✓`, en:(n)=>`Custom preset saved (${n} models) ✓`},
+  ps_free_avail:   {hu:(n)=>`${n} ingyenes modell elérhető`, en:(n)=>`${n} free models available`},
+  ps_free_short:   {hu:(n,c)=>`Csak ${n} ingyenes modell — ${c} kell`, en:(n,c)=>`Only ${n} free models — ${c} needed`},
+  ps_click_load:   {hu:'Kattints a betöltéshez', en:'Click to load'},
+  ps_custom_info:  {hu:(n)=>`Egyéni preset: ${n} modell`, en:(n)=>`Custom preset: ${n} models`},
+  ps_custom_none:  {hu:'Még nincs egyéni preset elmentve', en:'No custom preset saved yet'},
+  reader_quick:    {hu:'— Gyors választás —', en:'— Quick select —'},
+  t_copied2:       {hu:'Vágólapra másolva ✓', en:'Copied to clipboard ✓'},
+  t_copy_failed:   {hu:'Másolás sikertelen', en:'Copy failed'},
+  t_no_copy_sum:   {hu:'Nincs másolható összefoglaló', en:'No summary to copy'},
+  t_sum_copied:    {hu:'Összefoglaló másolva ✓', en:'Summary copied ✓'},
+  t_no_export:     {hu:'Nincs exportálható tanácskozás', en:'No deliberation to export'},
+  t_doc_done_trunc:{hu:(name,n)=>`„${name}" feldolgozva (${n} karakterre vágva) ✓`, en:(name,n)=>`"${name}" processed (truncated to ${n} chars) ✓`},
+  t_doc_done:      {hu:(name)=>`„${name}" feldolgozva ✓`, en:(name)=>`"${name}" processed ✓`},
+  t_settings_saved:{hu:'Beállítások mentve ✓', en:'Settings saved ✓'},
+  export_summary_h:{hu:'Összefoglaló', en:'Summary'},
+  cch_round:       {hu:(c,r)=>`${c} karakter · ${r} ford.`, en:(c,r)=>`${c} chars · r${r}`},
+  restore_meta:    {hu:(r,d)=>`${r} forduló · betöltött tanácskozás · ${d}`, en:(r,d)=>`${r} rounds · restored deliberation · ${d}`},
+};
+
+function t(key, ...args){
+  const e=I18N[key];
+  if(!e)return key;
+  const v=e[lang]!=null?e[lang]:e.hu;
+  return typeof v==='function'?v(...args):v;
+}
+
+function setLang(l){
+  lang=l;
+  localStorage.setItem('szolgatanacs-lang',l);
+  document.documentElement.lang=l;
+  applyLang();
+}
+
+// Apply translations to all [data-i18n] static nodes + dynamic bits
+function applyLang(){
+  document.querySelectorAll('[data-i18n]').forEach(el=>{el.textContent=t(el.dataset.i18n);});
+  document.querySelectorAll('[data-i18n-ph]').forEach(el=>{el.placeholder=t(el.dataset.i18nPh);});
+  document.querySelectorAll('[data-i18n-title]').forEach(el=>{el.title=t(el.dataset.i18nTitle);});
+  document.querySelectorAll('[data-i18n-aria]').forEach(el=>{el.setAttribute('aria-label',t(el.dataset.i18nAria));});
+  document.querySelectorAll('[data-i18n-optg]').forEach(el=>{el.label=t(el.dataset.i18nOptg);});
+  // language toggle visual state
+  const lh=$('lang-hu'), le=$('lang-en');
+  if(lh&&le){lh.classList.toggle('active',lang==='hu');le.classList.toggle('active',lang==='en');}
+  // dynamic regions that build their own markup
+  if(typeof updateMemoryBar==='function')updateMemoryBar();
+  if(typeof updateTally==='function')updateTally();
+  if($('mp')&&$('mp').classList.contains('show')&&typeof renderModelPickerList==='function')renderModelPickerList();
+  if(typeof mclist!=='undefined'&&mclist&&mclist.children.length&&typeof renderMCList==='function')renderMCList(liveCount());
+  if(typeof renderConsensusOptions==='function'&&$('inp-consensus'))renderConsensusOptions();
+  // re-translate empty grid / placeholders that are mode-aware
+  if(typeof applyModeUI==='function')applyModeUI();
+}
+
 // ════════════════════════════════════════════════════════════
 // CONSTANTS: PRESETS, ROLES, IDENTITY
 // ════════════════════════════════════════════════════════════
@@ -675,7 +932,8 @@ function migrate(p){
     name:m.name||PRESETS[i]?.name||`Model ${i+1}`,
     id:m.id||'',
     role:(m.role&&ROLES[m.role])?m.role:'none',
-    roleCustom:m.roleCustom||''
+    roleCustom:m.roleCustom||'',
+    fallbacks:Array.isArray(m.fallbacks)?m.fallbacks.filter(Boolean):[]
   }));
   p.council = {...DEFAULT_COUNCIL, ...(p.council||{})};
   p.readerModel = p.readerModel || DEFAULT_READER_MODEL;
@@ -686,11 +944,6 @@ function loadCfg(){
   try{
     const sNew=localStorage.getItem('szolgatanacs-cfg-v4');
     if(sNew) return migrate(JSON.parse(sNew));
-    // migrate legacy keys (previous builds) so existing settings are not lost
-    const s4=localStorage.getItem('ceklima-cfg-v4');
-    if(s4) return migrate(JSON.parse(s4));
-    const s3=localStorage.getItem('ceklima-cfg-v3');
-    if(s3) return migrate(JSON.parse(s3));
   }catch{}
   return {key:'',count:3,models:defaultModels(),council:{...DEFAULT_COUNCIL},readerModel:DEFAULT_READER_MODEL};
 }
@@ -761,6 +1014,8 @@ function avg(arr){return arr.length?arr.reduce((a,b)=>a+b,0)/arr.length:0;}
 // UI: grid, cards, summary card, status helpers
 // ════════════════════════════════════════════════════════════
 function init(){
+  document.documentElement.lang=lang;
+  applyLang();
   applyModeUI();
   buildGrid();
   updateTally();
@@ -774,7 +1029,7 @@ function buildGrid(){
   grid.classList.toggle('council',!!cfg.council.councilMode);
   const n=cfg.count;
   if(n===0){
-    grid.innerHTML=`<div class="empty-grid"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M12 8v4M12 16h.01"/></svg><p>Adja hozzá a modelleket a beállításokban</p></div>`;
+    grid.innerHTML=`<div class="empty-grid"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M12 8v4M12 16h.01"/></svg><p>${t('empty_grid')}</p></div>`;
     return;
   }
   for(let i=0;i<n;i++){
@@ -795,25 +1050,25 @@ function mkCard(i,m){
         <div class="sdot" id="dot-${i}"></div>
         <div class="card-names">
           <div class="card-nm">${esc(m.name)}</div>
-          <div class="card-mid">${esc(m.id)||'<em style="opacity:.4">nincs modell beállítva</em>'}</div>
+          <div class="card-mid">${esc(m.id)||`<em style="opacity:.4">${t('no_model')}</em>`}</div>
           <span class="rolebadge ${roleKey}" id="role-${i}">${esc(roleLabel)}</span>
         </div>
       </div>
       <div class="card-acts">
-        <button class="cbt" id="abrt-${i}" onclick="abortOne(${i})" title="Leállítás" style="display:none">
+        <button class="cbt" id="abrt-${i}" onclick="abortOne(${i})" title="${esc(t('ttl_abort'))}" style="display:none">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="3"/></svg>
         </button>
-        <button class="cbt" onclick="copyCard(${i})" title="Másolás">
+        <button class="cbt" onclick="copyCard(${i})" title="${esc(t('ttl_copy'))}">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
         </button>
       </div>
     </div>
     <div class="card-body" id="body-${i}">
-      <div class="placeholder">— várakozás —</div>
+      <div class="placeholder">${t("waiting")}</div>
     </div>
     <div class="card-foot">
-      <div class="cchars" id="cch-${i}">— karakter</div>
-      <div class="cstat" id="cst-${i}">üresjárat</div>
+      <div class="cchars" id="cch-${i}">— ${t('chars')}</div>
+      <div class="cstat" id="cst-${i}">${t("idle")}</div>
     </div>`;
   return c;
 }
@@ -821,10 +1076,10 @@ function mkCard(i,m){
 function resetCard(i){
   const b=$(`body-${i}`),d=$(`dot-${i}`),ch=$(`cch-${i}`),cs=$(`cst-${i}`),card=$(`card-${i}`),ab=$(`abrt-${i}`);
   if(!b)return;
-  b.innerHTML='<div class="placeholder">— várakozás —</div>';
+  b.innerHTML='<div class="placeholder">${t("waiting")}</div>';
   d.className='sdot';
-  ch.textContent='— karakter';
-  cs.textContent='üresjárat';
+  ch.textContent=`— ${t('chars')}`;
+  cs.textContent=t('idle');
   cs.className='cstat';
   card.className='card';
   if(ab)ab.style.display='none';
@@ -833,9 +1088,9 @@ function resetCard(i){
 
 function updateTally(){
   if(cfg.council.councilMode){
-    tally.textContent=`${cfg.count} Szolga · max ${cfg.council.maxRounds} forduló`;
+    tally.textContent=t('tally_council',cfg.count,cfg.council.maxRounds);
   }else{
-    tally.textContent=cfg.count===1?'1 modell aktív':`${cfg.count} modell aktív`;
+    tally.textContent=t('models_active',cfg.count);
   }
 }
 
@@ -844,9 +1099,7 @@ function applyModeUI(){
   modePar.classList.toggle('active',!on);
   modeCouncil.classList.toggle('active',on);
   grid.classList.toggle('council',on);
-  promptEl.placeholder = on
-    ? 'Tegye fel kérdését a tanácsnak — a Szolgák több fordulóban megvitatják, majd összefoglalót adnak...'
-    : 'Írja be kérdését — az összes modell párhuzamosan fog válaszolni...';
+  promptEl.placeholder = on ? t('ph_prompt_cnc') : t('ph_prompt_par');
   sbTokens.classList.toggle('show',on);
   sbConv.classList.toggle('show',on && cfg.council.convergenceEnabled);
   updateMemoryBar();
@@ -871,32 +1124,32 @@ function updateRoundBadge(cur,max,done){
   roundBadge.classList.toggle('show',cfg.council.councilMode);
   roundBadge.classList.toggle('done',!!done);
   roundBadge.classList.toggle('converged',councilMemory&&councilMemory.status==='converged');
-  rbText.textContent=`Forduló ${cur}/${max}`;
+  rbText.textContent=t('round_cur',cur,max);
 }
 
 function updateConvergenceBar(score){
   sbConv.classList.toggle('show',cfg.council.councilMode&&cfg.council.convergenceEnabled);
-  sbConvText.textContent=`Konvergencia ${(score*100).toFixed(0)}%`;
+  sbConvText.textContent=t('conv_pct',(score*100).toFixed(0));
 }
 
 function updateMemoryBar(){
   const n=councilHistory.length;
   sbMem.classList.toggle('show',cfg.council.councilMode&&n>0);
-  if(n>0)sbMemText.textContent=`Tanács emlékezet: ${n} témakör`;
+  if(n>0)sbMemText.textContent=t('mem_topics',n);
 }
 
 function clearCouncilMemory(){
-  if(!councilHistory.length){toast_show('A tanács emlékezete már üres');return;}
+  if(!councilHistory.length){toast_show(t('t_mem_empty'));return;}
   councilHistory=[];
   updateMemoryBar();
-  toast_show('A tanács emlékezete törölve');
+  toast_show(t('t_mem_cleared'));
 }
 
 function statusLabel(st){
   return ({
-    idle:'Készen áll', running:'Fut...', converged:'A tanács megállapodott ✓',
-    budget_exceeded:'Token-keret kimerült', stopped:'Leállítva', complete:'Tanács kész ✓'
-  })[st]||'Kész';
+    idle:t('st_idle'), running:t('st_running'), converged:t('st_converged'),
+    budget_exceeded:t('st_budget'), stopped:t('st_stopped'), complete:t('st_complete')
+  })[st]||t('st_done');
 }
 
 // Council card: open a new round segment
@@ -905,9 +1158,9 @@ function councilCardBeginRound(idx, roundNum){
   if(roundNum===1){ body.innerHTML=''; rtexts[idx]=''; }
   const div=document.createElement('div');
   div.className='rounddiv';
-  div.innerHTML=`<span class="rounddiv-l">Forduló ${roundNum}</span>`;
+  div.innerHTML=`<span class="rounddiv-l">${t("round_n")}${roundNum}</span>`;
   body.appendChild(div);
-  if(roundNum>1) rtexts[idx]=(rtexts[idx]||'')+`\n\n─── Forduló ${roundNum} ───\n`;
+  if(roundNum>1) rtexts[idx]=(rtexts[idx]||'')+`\n\n─── ${t("round_n")}${roundNum} ───\n`;
   const seg=document.createElement('span');
   seg.className='rtext';
   const cur=document.createElement('span'); cur.className='cur';
@@ -917,7 +1170,7 @@ function councilCardBeginRound(idx, roundNum){
     append(delta){
       seg.appendChild(document.createTextNode(delta));
       rtexts[idx]=(rtexts[idx]||'')+delta;
-      $(`cch-${idx}`).textContent=`${nf((rtexts[idx]||'').length)} karakter`;
+      $(`cch-${idx}`).textContent=`${nf((rtexts[idx]||'').length)} ${t('chars')}`;
       body.scrollTop=body.scrollHeight;
     },
     finish(durationMs){
@@ -927,6 +1180,13 @@ function councilCardBeginRound(idx, roundNum){
     fail(msg){
       cur.remove();
       const e=document.createElement('div'); e.className='rerr'; e.textContent=`⚠ ${msg}`; body.appendChild(e);
+    },
+    note(msg){
+      // clear any partial output from a failed attempt, show a fallback notice
+      seg.textContent=''; rtexts[idx]=(roundNum>1?(rtexts[idx]||''):'' );
+      const n=document.createElement('div'); n.className='rfallback'; n.textContent=`↪ ${msg}`; body.appendChild(n);
+      body.appendChild(cur); cur.classList.add('cur');
+      body.scrollTop=body.scrollHeight;
     }
   };
 }
@@ -936,20 +1196,20 @@ function setCardState(idx, state, roundNum, durationMs){
   if(!dot)return;
   if(state==='streaming'){
     dot.className='sdot active'; card.className='card streaming';
-    cst.className='cstat active'; cst.textContent=`streamelés... · ${roundNum}. f.`;
+    cst.className='cstat active'; cst.textContent=t('cst_streaming',roundNum);
     if(ab)ab.style.display='';
   }else if(state==='done'){
     dot.className='sdot'; card.className='card';
-    cst.className='cstat'; cst.textContent=`kész ✓ · ${roundNum}. f.`;
+    cst.className='cstat'; cst.textContent=t('cst_done',roundNum);
     if(ab)ab.style.display='none';
-    if(rtexts[idx]!=null)cch.textContent=`${nf(rtexts[idx].length)} karakter · ${roundNum} ford.`;
+    if(rtexts[idx]!=null)cch.textContent=t('cch_round',nf(rtexts[idx].length),roundNum);
   }else if(state==='failed'){
     dot.className='sdot error'; card.className='card errored';
     cst.className='cstat error'; cst.textContent='hiba';
     if(ab)ab.style.display='none';
   }else if(state==='aborted'||state==='timeout'){
     dot.className='sdot'; card.className='card';
-    cst.className='cstat'; cst.textContent=state==='timeout'?'időtúllépés':'leállítva';
+    cst.className='cstat'; cst.textContent=state==='timeout'?t('cst_timeout'):t('cst_aborted');
     if(ab)ab.style.display='none';
   }
 }
@@ -966,15 +1226,15 @@ function mkSummaryCard(memory, m){
       <div class="card-info">
         <span class="sum-mark">◆</span>
         <div class="card-names">
-          <div class="card-nm">SZOLGA TANÁCS — ÖSSZEFOGLALÓ</div>
+          <div class="card-nm">${t("summary_head")}</div>
           <div class="card-mid" id="sum-meta">${esc(m.name)} · ${esc(m.id)}</div>
         </div>
       </div>
       <div class="card-acts">
-        <button class="cbt" onclick="exportTranscript()" title="Jegyzőkönyv letöltése (.md)">
+        <button class="cbt" onclick="exportTranscript()" title="${esc(t('ttl_export'))}">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         </button>
-        <button class="cbt" onclick="copySummary()" title="Másolás">
+        <button class="cbt" onclick="copySummary()" title="${esc(t('ttl_copy'))}">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
         </button>
       </div>
@@ -990,7 +1250,7 @@ function updateSummaryMeta(memory){
   const el=$('sum-meta'); if(!el)return;
   const rounds=memory.rounds.length;
   const szolgak=activeAgentCount();
-  el.textContent=`${rounds} forduló · ${szolgak} Szolga · ≈ $${CostController.estimatedCost.toFixed(3)} · ${nf(CostController.totalTokens)} token`;
+  el.textContent=t('sum_meta',rounds,szolgak);
 }
 
 // Minimal markdown -> HTML for the summary card
@@ -1210,8 +1470,8 @@ async function loadPricing(){
 function priceLabel(id){
   if(!id)return '';
   const p=modelPricing[id];
-  if(!p)return pricingLoaded?'<span class="mcprice">ár ismeretlen</span>':'';
-  if(p.prompt===0&&p.completion===0)return '<span class="mcprice free">ingyenes</span>';
+  if(!p)return pricingLoaded?`<span class="mcprice">${t('price_unknown')}</span>`:'';
+  if(p.prompt===0&&p.completion===0)return `<span class="mcprice free">${t('free_word')}</span>`;
   return `<span class="mcprice">be: $${(p.prompt*1e6).toFixed(2)}/M · ki: $${(p.completion*1e6).toFixed(2)}/M</span>`;
 }
 
@@ -1244,15 +1504,15 @@ function sortedModels(){
 
 function renderModelPickerList(){
   const list=$('mp-list'), q=$('mp-search').value.trim().toLowerCase();
-  if(!pricingLoaded){list.innerHTML='<div class="mp-empty">Árlista betöltése folyamatban… próbáld újra pár másodperc múlva (internetkapcsolat szükséges).</div>';$('mp-count').textContent='';return;}
+  if(!pricingLoaded){list.innerHTML=`<div class="mp-empty">${t('mp_loading')}</div>`;$('mp-count').textContent='';return;}
   let rows=sortedModels();
   if(mpFilter==='free')rows=rows.filter(r=>r.free);
   else if(mpFilter==='paid')rows=rows.filter(r=>!r.free);
   if(q)rows=rows.filter(r=>r.id.toLowerCase().includes(q));
   $('mp-count').textContent=`${rows.length} modell`;
-  if(!rows.length){list.innerHTML='<div class="mp-empty">Nincs találat.</div>';return;}
+  if(!rows.length){list.innerHTML=`<div class="mp-empty">${t('no_results')}</div>`;return;}
   list.innerHTML=rows.map(r=>{
-    const price=r.free?'<span class="mp-price free">ingyenes</span>'
+    const price=r.free?`<span class="mp-price free">${t('free_word')}</span>`
       :`<span class="mp-price">$${r.perM.toFixed(2)} / M token</span>`;
     return `<div class="mp-row" data-id="${esc(r.id)}">`+
       `<div class="mp-bar" style="background:${priceColor(r.perM)}"></div>`+
@@ -1328,12 +1588,27 @@ function setModelStatus(id,state,reason){
   modelStatus[id]={state,reason,ts:Date.now()};
 }
 
+// Classify a failure: is it an availability problem we should fall back on,
+// or a credit/billing problem where we must stop and warn (never silently re-spend)?
+function classifyError(err){
+  const status=err&&err.httpStatus;
+  const msg=((err&&err.message)||'').toLowerCase();
+  const credit = status===402 || /insufficient credit|requires more credits|negative balance|payment required/.test(msg);
+  if(credit)return 'credit';
+  const avail = status===429 || status===404 || status===502 || status===503 ||
+    /no endpoints|not available|no allowed providers|rate limit|temporarily|overloaded|provider returned error|timeout|upstream/.test(msg);
+  if(avail)return 'avail';
+  // unknown server-side (5xx) → treat as availability (worth a fallback); else non-fallback
+  if(status&&status>=500)return 'avail';
+  return 'other';
+}
+
 async function testConfiguredModels(){
   if(testingModels)return;
-  if(!cfg.key){toast_show('Előbb add meg az OpenRouter API kulcsot');return;}
+  if(!cfg.key){toast_show(t('t_test_keyfirst'));return;}
   testingModels=true;
   const btn=$('btn-test-models');
-  if(btn){btn.disabled=true;btn.textContent='Tesztelés folyamatban…';}
+  if(btn){btn.disabled=true;btn.textContent=t('test_running');}
 
   // 1) configured models (always)
   const ids=[];
@@ -1357,21 +1632,21 @@ async function testConfiguredModels(){
 
   // ping the rest of the free roster in the background (status dots only)
   if(extraFree.length){
-    if(btn)btn.textContent=`Ingyenes modellek tesztelése… (0/${extraFree.length})`;
+    if(btn)btn.textContent=t('test_free_prog',0,extraFree.length);
     let done=0;
     await runPool(extraFree, async (id)=>{
       const r=await pingModel(id);
       setModelStatus(id,r.state,r.reason);
       done++;
-      if(btn)btn.textContent=`Ingyenes modellek tesztelése… (${done}/${extraFree.length})`;
+      if(btn)btn.textContent=t('test_free_prog',done,extraFree.length);
       if($('mp')?.classList.contains('show'))renderModelPickerList();
     }, 4);
   }
 
-  if(btn){btn.disabled=false;btn.innerHTML=TEST_BTN_LABEL;}
+  if(btn){btn.disabled=false;btn.innerHTML=testBtnLabel();}
   testingModels=false;
   if($('mp')?.classList.contains('show'))renderModelPickerList();
-  toast_show(`Teszt kész: ${ok} elérhető, ${down} nem${limited?`, ${limited} rate-limit`:''}${extraFree.length?` · +${extraFree.length} ingyenes ellenőrizve`:''}`);
+  toast_show(t('test_result',ok,down,limited,extraFree.length));
 }
 
 function renderStatusDot(i,state,reason){
@@ -1380,7 +1655,7 @@ function renderStatusDot(i,state,reason){
   const map={ok:['ok','elérhető'],down:['down',reason||'nem elérhető'],limited:['limited',reason||'rate limit'],testing:['testing','tesztelés…']};
   const [cls,txt]=map[state]||['',''];
   el.className='mstatus '+cls;
-  el.title=txt?`Állapot: ${txt}`:'Állapot: nem tesztelt';
+  el.title=txt?`${t('status_prefix')}${txt}`:`${t('status_prefix')}${t('st_untested')}`;
 }
 
 function statusDotFor(id){
@@ -1392,8 +1667,8 @@ function statusDotFor(id){
 
 function statusWord(s){
   if(!s)return 'nem tesztelt';
-  if(s.state==='ok')return 'elérhető';
-  if(s.state==='testing')return 'tesztelés…';
+  if(s.state==='ok')return t('st_avail');
+  if(s.state==='testing')return t('st_testing');
   if(s.state==='limited')return s.reason||'rate limit';
   return s.reason||'nem elérhető';
 }
@@ -1403,7 +1678,8 @@ function statusTitle(id){
   return 'Állapot: '+statusWord(s);
 }
 
-const TEST_BTN_LABEL='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg>Modellek tesztelése';
+const TEST_BTN_ICON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg>';
+function testBtnLabel(){return TEST_BTN_ICON+t('test_models');}
 
 // ════════════════════════════════════════════════════════════
 // SESSIONS — save / load deliberation snapshots (0-token recall)
@@ -1416,7 +1692,7 @@ function loadSessions(){
 }
 function persistSessions(list){
   try{localStorage.setItem(SESSIONS_KEY,JSON.stringify(list));return true;}
-  catch{toast_show('Mentés sikertelen — a tárhely megtelt; törölj néhány régi mentést');return false;}
+  catch{toast_show(t('t_storage_full'));return false;}
 }
 
 function hasSomethingToSave(){
@@ -1430,7 +1706,7 @@ function buildSnapshot(){
   for(let i=0;i<cfg.count;i++){
     const m=cfg.models[i]||{};
     cards.push({
-      name:m.name||'', id:m.id||'', role:m.role||'none', roleCustom:m.roleCustom||'',
+      name:m.name||'', id:m.id||'', role:m.role||'none', roleCustom:m.roleCustom||'', fallbacks:Array.isArray(m.fallbacks)?m.fallbacks:[],
       text:rtexts[i]||'',
       status:($(`cst-${i}`)?.textContent)||''
     });
@@ -1452,7 +1728,7 @@ function buildSnapshot(){
 }
 
 function saveSession(){
-  if(!hasSomethingToSave()){toast_show('Nincs menthető tanácskozás — előbb futtass egy lekérdezést');return;}
+  if(!hasSomethingToSave()){toast_show(t('t_nothing_save'));return;}
   const snap=buildSnapshot();
   let title=(snap.query||'Névtelen tanácskozás').replace(/\s+/g,' ').trim();
   if(title.length>60)title=title.slice(0,60)+'…';
@@ -1460,7 +1736,7 @@ function saveSession(){
   const list=loadSessions();
   list.unshift(snap);
   while(list.length>MAX_SESSIONS)list.pop();
-  if(persistSessions(list)){toast_show('Tanácskozás elmentve ✓');renderSessionList();}
+  if(persistSessions(list)){toast_show(t('t_saved'));renderSessionList();}
 }
 
 function deleteSession(id){
@@ -1477,7 +1753,7 @@ function restoreSession(id){
   // 1) restore mode + model config so the cards match the saved run
   cfg.council.councilMode=(snap.mode==='council');
   cfg.count=snap.count;
-  snap.cards.forEach((c,i)=>{cfg.models[i]={name:c.name,id:c.id,role:c.role,roleCustom:c.roleCustom};});
+  snap.cards.forEach((c,i)=>{cfg.models[i]={name:c.name,id:c.id,role:c.role,roleCustom:c.roleCustom,fallbacks:Array.isArray(c.fallbacks)?c.fallbacks:[]};});
   saveCfg();
   applyModeUI();
   buildGrid();
@@ -1489,10 +1765,10 @@ function restoreSession(id){
       rtexts[i]=c.text;
       const span=document.createElement('span'); span.className='rtext'; span.textContent=c.text;
       body.innerHTML=''; body.appendChild(span);
-      cch.textContent=`${nf(c.text.length)} karakter`;
-      cst.textContent=c.status||'betöltve';
+      cch.textContent=`${nf(c.text.length)} ${t('chars')}`;
+      cst.textContent=c.status||t('st_loaded');
     }else{
-      cst.textContent=c.status||'üresjárat';
+      cst.textContent=c.status||t('idle');
     }
   });
   // 3) restore prompt + consensus + memory (so follow-ups have context)
@@ -1507,11 +1783,11 @@ function restoreSession(id){
       const card=mkSummaryCard({rounds:Array(snap.rounds||1)},m);
       const bodyEl=card.querySelector('.sum-body');
       bodyEl.innerHTML=renderMarkdown(snap.consensus);
-      const meta=$('sum-meta'); if(meta)meta.textContent=`${snap.rounds||'?'} forduló · betöltött tanácskozás · ${new Date(snap.ts).toLocaleString('hu-HU')}`;
+      const meta=$('sum-meta'); if(meta)meta.textContent=t('restore_meta',snap.rounds||'?',new Date(snap.ts).toLocaleString(lang==='hu'?'hu-HU':'en-US'));
     }
   }
   closeSessions();
-  toast_show('Tanácskozás betöltve — 0 token');
+  toast_show(t('t_restored'));
 }
 
 function pickConsensusIdxSafe(){
@@ -1522,15 +1798,16 @@ function pickConsensusIdxSafe(){
 function renderSessionList(){
   const wrap=$('ss-list');
   const list=loadSessions();
-  if(!list.length){wrap.innerHTML='<div class="mp-empty">Még nincs mentett tanácskozás. Futtass egy lekérdezést, majd nyomd meg a „Jelenlegi mentése" gombot.</div>';return;}
+  if(!list.length){wrap.innerHTML=`<div class="mp-empty">${t('ss_none')}</div>`;return;}
+  const loc=lang==='hu'?'hu-HU':'en-US';
   wrap.innerHTML=list.map(s=>{
-    const date=new Date(s.ts).toLocaleString('hu-HU',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
-    const modeLabel=s.mode==='council'?'Tanács':'Párhuzamos';
-    const sub=`${date} · ${modeLabel} · ${s.count} Szolga${s.rounds?` · ${s.rounds} ford.`:''}${s.consensus?' · összefoglalóval':''}`;
+    const date=new Date(s.ts).toLocaleString(loc,{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+    const modeLabel=s.mode==='council'?t('mode_council_w'):t('mode_parallel_w');
+    const sub=t('ss_sub',date,modeLabel,s.count,s.rounds,!!s.consensus);
     return `<div class="ss-row" data-id="${esc(s.id)}">`+
-      `<div class="ss-info"><span class="ss-title">${esc(s.title||'Névtelen')}</span><span class="ss-sub">${esc(sub)}</span></div>`+
-      `<button class="ss-load" data-load="${esc(s.id)}">Betöltés</button>`+
-      `<button class="dc-x" data-del="${esc(s.id)}" title="Törlés"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 6L6 18M6 6l12 12"/></svg></button>`+
+      `<div class="ss-info"><span class="ss-title">${esc(s.title||t('ss_unnamed'))}</span><span class="ss-sub">${esc(sub)}</span></div>`+
+      `<button class="ss-load" data-load="${esc(s.id)}">${t("load")}</button>`+
+      `<button class="dc-x" data-del="${esc(s.id)}" title="${esc(t('ttl_delete'))}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 6L6 18M6 6l12 12"/></svg></button>`+
       `</div>`;
   }).join('');
   wrap.querySelectorAll('[data-load]').forEach(b=>b.addEventListener('click',()=>restoreSession(b.dataset.load)));
@@ -1569,13 +1846,13 @@ function applyModelIds(ids){
 
 async function ensurePricing(){
   if(pricingLoaded)return true;
-  toast_show('Modell-lista betöltése…');
+  toast_show(t('t_loading_models'));
   await loadPricing();
   return pricingLoaded;
 }
 
 async function presetFree(){
-  if(!(await ensurePricing())){toast_show('Nem sikerült betölteni a modell-listát (internet szükséges)');return;}
+  if(!(await ensurePricing())){toast_show(t('t_no_models_list'));return;}
   // exclude known-down; prefer ok > unknown; within that, strong families first
   let free=freeCatalogModels().filter(r=>modelStatus[r.id]?.state!=='down');
   free.sort((a,b)=>{
@@ -1583,30 +1860,30 @@ async function presetFree(){
     return sa-sb || familyRank(a.id)-familyRank(b.id) || a.id.localeCompare(b.id);
   });
   if(free.length<liveCount()){
-    toast_show(`Csak ${free.length} elérhető ingyenes modell van, de ${liveCount()} Szolga kell — csökkentsd a Szolgák számát vagy válassz fizetőst`);
+    toast_show(t('t_preset_free',free.length,liveCount()));
     return;
   }
   applyModelIds(free.map(r=>r.id));
-  toast_show(`Ingyenes preset betöltve — ${liveCount()} ingyenes Szolga ✓`);
+  toast_show(t('t_preset_free_ok',liveCount()));
 }
 
 async function presetCheap(){
-  if(!(await ensurePricing())){toast_show('Nem sikerült betölteni a modell-listát (internet szükséges)');return;}
+  if(!(await ensurePricing())){toast_show(t('t_no_models_list'));return;}
   const paid=paidCatalogModels().filter(r=>modelStatus[r.id]?.state!=='down');
-  if(paid.length<liveCount()){toast_show('Nincs elég modell a listában');return;}
+  if(paid.length<liveCount()){toast_show(t('t_no_models_short'));return;}
   const pick=paid.slice(0,liveCount());
   applyModelIds(pick.map(r=>r.id));
   const max=pick[pick.length-1];
-  toast_show(`Költséghatékony preset betöltve — legdrágább: $${max.perM.toFixed(2)}/M ✓`);
+  toast_show(t('t_preset_cheap_ok',max.perM.toFixed(2)));
 }
 
 function loadCustomPreset(){try{return JSON.parse(localStorage.getItem(CUSTOM_PRESET_KEY)||'null');}catch{return null;}}
 function presetCustomApply(){
   const cp=loadCustomPreset();
-  if(!cp||!cp.length){toast_show('Még nincs egyéni preset — állítsd be a modelleket, majd „Jelenlegi mentése egyéniként”');return;}
+  if(!cp||!cp.length){toast_show(t('t_custom_none'));return;}
   for(let i=0;i<liveCount();i++)cfg.models[i]=cp[i]?{...cp[i]}:{name:'',id:'',role:DEFAULT_ROLES[i]||'none',roleCustom:''};
   renderMCList(liveCount());
-  toast_show('Egyéni preset betöltve ✓');
+  toast_show(t('t_custom_loaded'));
 }
 function presetCustomSave(){
   // snapshot current card inputs
@@ -1614,9 +1891,9 @@ function presetCustomSave(){
   for(let i=0;i<liveCount();i++){
     arr.push({name:$(`mn-${i}`)?.value.trim()||'', id:$(`mi-${i}`)?.value.trim()||'', role:$(`mr-${i}`)?.value||'none', roleCustom:$(`mrc-${i}`)?.value.trim()||''});
   }
-  if(!arr.some(m=>m.id)){toast_show('Nincs mentendő modell');return;}
-  try{localStorage.setItem(CUSTOM_PRESET_KEY,JSON.stringify(arr));toast_show(`Egyéni preset elmentve (${arr.filter(m=>m.id).length} modell) ✓`);refreshPresetState();}
-  catch{toast_show('Mentés sikertelen');}
+  if(!arr.some(m=>m.id)){toast_show(t('t_custom_nosave'));return;}
+  try{localStorage.setItem(CUSTOM_PRESET_KEY,JSON.stringify(arr));toast_show(t('t_preset_saved',arr.filter(m=>m.id).length));refreshPresetState();}
+  catch{toast_show(t('t_save_failed'));}
 }
 
 // enable/disable + hint the preset buttons based on current count and catalog
@@ -1628,13 +1905,13 @@ function refreshPresetState(){
     const enough=nFree>=liveCount();
     free.classList.toggle('ps-ready',enough);
     free.classList.toggle('ps-short',!enough);
-    free.title=enough?`${nFree} ingyenes modell elérhető`:`Csak ${nFree} ingyenes modell — ${liveCount()} kell`;
+    free.title=enough?t('ps_free_avail',nFree):t('ps_free_short',nFree,liveCount());
   }else{
-    free.title='Kattints a betöltéshez';
+    free.title=t('ps_click_load');
   }
   const cp=loadCustomPreset();
   custom.classList.toggle('ps-ready',!!(cp&&cp.length));
-  custom.title=(cp&&cp.length)?`Egyéni preset: ${cp.filter(m=>m.id).length} modell`:'Még nincs egyéni preset elmentve';
+  custom.title=(cp&&cp.length)?t('ps_custom_info',cp.filter(m=>m.id).length):t('ps_custom_none');
 }
 
 // ════════════════════════════════════════════════════════════
@@ -1657,9 +1934,12 @@ async function rawStream(modelId, messages, ctrl, opts={}){
     signal:ctrl.signal
   });
   if(!res.ok){
-    let em=`HTTP ${res.status}`;
-    try{const e=await res.json();em=e.error?.message||em;}catch{}
-    throw new Error(em);
+    let em=`HTTP ${res.status}`, code=null;
+    try{const e=await res.json();em=e.error?.message||em;code=e.error?.code||null;}catch{}
+    const err=new Error(em);
+    err.httpStatus=res.status;
+    err.apiCode=code;
+    throw err;
   }
   if(opts.onStart)opts.onStart();
   let content='',usage=null;
@@ -1708,7 +1988,7 @@ async function streamOne(idx,messages){
   dot.className='sdot wait';
   body.innerHTML='<div class="placeholder"><div class="dots"><span>·</span><span>·</span><span>·</span></div></div>';
   cst.className='cstat active';
-  cst.textContent='csatlakozás...';
+  cst.textContent=t('cst_connecting');
   if(ab)ab.style.display='';
 
   const ctrl=new AbortController();
@@ -1721,7 +2001,7 @@ async function streamOne(idx,messages){
       onStart(){
         dot.className='sdot active';
         card.className='card streaming';
-        cst.textContent='streamelés...';
+        cst.textContent=t('cst_streaming_p');
         body.innerHTML='';
         span=document.createElement('span'); span.className='rtext';
         cur=document.createElement('span'); cur.className='cur';
@@ -1730,7 +2010,7 @@ async function streamOne(idx,messages){
       onDelta(delta){
         span.appendChild(document.createTextNode(delta));
         fullText+=delta;
-        cch.textContent=`${nf(fullText.length)} karakter`;
+        cch.textContent=`${nf(fullText.length)} ${t('chars')}`;
         body.scrollTop=body.scrollHeight;
       }
     });
@@ -1742,7 +2022,7 @@ async function streamOne(idx,messages){
     rtexts[idx]=fullText;
     conversations[idx].push({role:'assistant',content:fullText});
     const turns=Math.floor(conversations[idx].length/2);
-    cst.textContent=turns>1?`kész ✓ · ${turns}. ford.`:'kész ✓';
+    cst.textContent=turns>1?t('cst_done_turns',turns):t('cst_done_simple');
     if(ab)ab.style.display='none';
 
   }catch(err){
@@ -1752,12 +2032,12 @@ async function streamOne(idx,messages){
     if(ab)ab.style.display='none';
     if(err.name==='AbortError'){
       dot.className='sdot'; card.className='card'; cst.className='cstat';
-      cst.textContent='leállítva';
-      if(!fullText)body.innerHTML='<div class="placeholder">— leállítva —</div>';
+      cst.textContent=t('cst_stopped');
+      if(!fullText)body.innerHTML=`<div class="placeholder">${t('ph_stopped')}</div>`;
     }else{
       dot.className='sdot error'; card.className='card errored'; cst.className='cstat error';
       cst.textContent='hiba';
-      body.innerHTML=`<div class="rerr">⚠ Hiba: ${esc(err.message)}</div>`;
+      body.innerHTML=`<div class="rerr">⚠ ${t('err_prefix')}${esc(err.message)}</div>`;
     }
   }finally{
     delete ctrls[idx];
@@ -1765,54 +2045,91 @@ async function streamOne(idx,messages){
     if(running===0){
       btnSend.disabled=false;
       btnStop.style.display='none';
-      sbStat.textContent='Kész';
+      sbStat.textContent=t('st_done');
     }else{
-      sbStat.textContent=`${running} modell fut...`;
+      sbStat.textContent=t('running_n',running);
     }
   }
 }
 
-// Council-mode streaming — fault isolated, timeout, token tracking, round-segmented UI
+// Build a Servant's model chain: primary id + its fallback ids (deduped, non-empty)
+function modelChain(idx){
+  const m=cfg.models[idx]||{};
+  const chain=[m.id, ...((m.fallbacks)||[])].map(x=>(x||'').trim()).filter(Boolean);
+  return [...new Set(chain)];
+}
+
+// Council-mode streaming — fault isolated, timeout, token tracking, round-segmented UI.
+// Tries the Servant's model chain in order; falls back on availability errors, stops on credit errors.
 async function streamOneCouncil(agentIdx, messages, roundNum){
   const m=cfg.models[agentIdx];
+  const chain=modelChain(agentIdx);
   const resp={
     agentIdx, agentName:m.name, role:roleLabelFor(agentIdx), modelId:m.id,
     content:'', tokens:{prompt:0,completion:0,total:0},
-    status:'streaming', error:null, durationMs:0
+    status:'streaming', error:null, durationMs:0, usedFallback:false
   };
   const seg=councilCardBeginRound(agentIdx, roundNum);
   setCardState(agentIdx,'streaming',roundNum);
 
-  const ctrl=new AbortController();
-  ctrls[agentIdx]=ctrl;
-  let timedOut=false;
-  const timeoutId=setTimeout(()=>{timedOut=true;ctrl.abort();},cfg.council.callTimeoutMs||90000);
-
-  try{
-    const r=await rawStream(m.id,messages,ctrl,{
-      maxTokens:cfg.council.maxTokensPerCall,
-      onDelta(delta){seg.append(delta);}
-    });
-    clearTimeout(timeoutId);
-    resp.content=r.content; resp.tokens=r.tokens; resp.durationMs=r.durationMs; resp.status='done';
-    CostController.record(r.tokens, m.id);
-    setModelStatus(m.id,'ok','elérhető');
-    seg.finish(r.durationMs);
-    setCardState(agentIdx,'done',roundNum,r.durationMs);
-  }catch(err){
-    clearTimeout(timeoutId);
-    if(err.name==='AbortError'){
-      resp.status=timedOut?'timeout':'aborted';
-      resp.error=timedOut?'időtúllépés (90s)':'leállítva';
-    }else{
-      resp.status='failed'; resp.error=err.message;
-      setModelStatus(m.id,'down',err.message);
+  let lastErr=null;
+  for(let ci=0; ci<chain.length; ci++){
+    const mid=chain[ci];
+    const isFallback=ci>0;
+    if(isFallback){
+      seg.note(t('fb_trying', mid));   // visible note in the card
+      setCardState(agentIdx,'streaming',roundNum);
     }
-    seg.fail(resp.error);
-    setCardState(agentIdx,resp.status,roundNum);
-  }finally{
-    delete ctrls[agentIdx];
+    const ctrl=new AbortController();
+    ctrls[agentIdx]=ctrl;
+    let timedOut=false;
+    const timeoutId=setTimeout(()=>{timedOut=true;ctrl.abort();},cfg.council.callTimeoutMs||90000);
+    try{
+      const r=await rawStream(mid,messages,ctrl,{
+        maxTokens:cfg.council.maxTokensPerCall,
+        onDelta(delta){seg.append(delta);}
+      });
+      clearTimeout(timeoutId);
+      resp.content=r.content; resp.tokens=r.tokens; resp.durationMs=r.durationMs; resp.status='done';
+      resp.modelId=mid; resp.usedFallback=isFallback;
+      CostController.record(r.tokens, mid);
+      setModelStatus(mid,'ok','elérhető');
+      seg.finish(r.durationMs);
+      setCardState(agentIdx,'done',roundNum,r.durationMs);
+      delete ctrls[agentIdx];
+      return resp;
+    }catch(err){
+      clearTimeout(timeoutId);
+      lastErr=err;
+      if(err.name==='AbortError'){
+        if(!timedOut){ resp.status='aborted'; resp.error=t('cst_aborted'); seg.fail(resp.error); setCardState(agentIdx,'aborted',roundNum); delete ctrls[agentIdx]; return resp; }
+        // timeout → treat as availability, try next in chain
+        setModelStatus(mid,'down','timeout');
+        if(ci<chain.length-1)continue; else { resp.status='timeout'; resp.error=t('cst_timeout'); }
+      }else{
+        const kind=classifyError(err);
+        if(kind==='credit'){
+          setModelStatus(mid,'down',err.message);
+          resp.status='failed'; resp.error=err.message; resp.creditError=true;
+          break;   // never auto-spend on another model for a billing error
+        }
+        if(kind==='avail'){
+          setModelStatus(mid,'down',err.message);
+          if(ci<chain.length-1)continue;   // try next fallback
+          resp.status='failed'; resp.error=err.message;
+        }else{
+          setModelStatus(mid,'down',err.message);
+          resp.status='failed'; resp.error=err.message;
+          break;   // non-fallbackable
+        }
+      }
+    }
   }
+  // all chain entries failed
+  if(resp.status==='streaming'){resp.status='failed'; resp.error=(lastErr&&lastErr.message)||'hiba';}
+  seg.fail(resp.error + (chain.length>1?` ${t('fb_exhausted')}`:''));
+  setCardState(agentIdx,resp.status,roundNum);
+  delete ctrls[agentIdx];
   return resp;
 }
 
@@ -1880,21 +2197,22 @@ function pickConsensusAgentIdx(){
 async function generateConsensus(memory){
   const idx=pickConsensusAgentIdx();
   const m=cfg.models[idx];
+  const chain=modelChain(idx);
   const msgs=buildConsensusPrompt(memory);
   const card=mkSummaryCard(memory,m);
   const bodyEl=card.querySelector('.sum-body');
-  sbStat.textContent='Összefoglaló készítése...';
+  sbStat.textContent=t('sum_making');
 
-  let attempt=0,success=false;
-  while(attempt<2&&!success){
-    attempt++;
+  let success=false;
+  for(let ci=0; ci<chain.length && !success; ci++){
+    const mid=chain[ci];
+    if(ci>0)bodyEl.innerHTML=`<div class="rfallback">↪ ${esc(t('fb_trying',mid))}</div>`;
     const ctrl=new AbortController();
     ctrls['consensus']=ctrl;
-    let acc='';
-    let live;
+    let acc='', live;
     try{
-      bodyEl.innerHTML='<div class="placeholder"><div class="dots"><span>·</span><span>·</span><span>·</span></div></div>';
-      const r=await rawStream(m.id,msgs,ctrl,{
+      if(ci===0)bodyEl.innerHTML='<div class="placeholder"><div class="dots"><span>·</span><span>·</span><span>·</span></div></div>';
+      const r=await rawStream(mid,msgs,ctrl,{
         maxTokens:Math.max(cfg.council.maxTokensPerCall*2,2000),
         onStart(){
           bodyEl.innerHTML='';
@@ -1903,19 +2221,26 @@ async function generateConsensus(memory){
         onDelta(delta,content){acc=content;live.textContent=acc;bodyEl.scrollTop=bodyEl.scrollHeight;}
       });
       memory.consensusSummary=r.content;
-      CostController.record(r.tokens, m.id);
-      bodyEl.innerHTML=renderMarkdown(r.content);   // render markdown once complete
+      CostController.record(r.tokens, mid);
+      setModelStatus(mid,'ok','elérhető');
+      bodyEl.innerHTML=renderMarkdown(r.content);
       updateSummaryMeta(memory);
       success=true;
     }catch(err){
+      delete ctrls['consensus'];
       if(err.name==='AbortError'){
         if(acc){memory.consensusSummary=acc;bodyEl.innerHTML=renderMarkdown(acc);}
-        else bodyEl.innerHTML='<div class="placeholder">— összefoglaló leállítva —</div>';
+        else bodyEl.innerHTML=`<div class="placeholder">${t('ph_sum_stopped')}</div>`;
         updateSummaryMeta(memory);
-        success=true;  // do not retry on user abort
-      }else if(attempt>=2){
-        bodyEl.innerHTML=`<div class="rerr">⚠ Összefoglaló sikertelen: ${esc(err.message)}</div>`;
+        return;  // user abort: stop entirely
       }
+      const kind=classifyError(err);
+      setModelStatus(mid,'down',err.message);
+      if(kind==='credit' || (kind!=='avail' && ci>=chain.length-1) || ci>=chain.length-1){
+        bodyEl.innerHTML=`<div class="rerr">⚠ ${esc(t('sum_failed',err.message))}${chain.length>1?` ${esc(t('fb_exhausted'))}`:''}</div>`;
+        return;
+      }
+      // else: availability error and more fallbacks remain → loop continues
     }finally{
       delete ctrls['consensus'];
     }
@@ -1934,7 +2259,7 @@ async function runCouncil(query){
   setRunningUI(true,true);
   updateRoundBadge(0,cfg.council.maxRounds);
   sbConv.classList.toggle('show',cfg.council.convergenceEnabled);
-  if(cfg.council.convergenceEnabled)sbConvText.textContent='Konvergencia —';
+  if(cfg.council.convergenceEnabled)sbConvText.textContent=t('sb_conv');
   councilMemory.status='running';
 
   try{
@@ -1942,11 +2267,11 @@ async function runCouncil(query){
       // Budget pre-check
       if(CostController.isExhausted()||!CostController.canStartRound()){
         councilMemory.status='budget_exceeded';
-        toast_show('Token-keret kimerült — a tanács összefoglalót készít');
+        toast_show(t('t_budget_sum'));
         break;
       }
       updateRoundBadge(roundNum,cfg.council.maxRounds);
-      sbStat.textContent=`Tanács — ${roundNum}. forduló fut...`;
+      sbStat.textContent=t('council_round_run',roundNum);
 
       const contexts=agents.map(a=>buildAgentContext(a.idx,query,councilMemory,roundNum));
       const roundData=initRound(roundNum);
@@ -1958,7 +2283,7 @@ async function runCouncil(query){
 
       if(ok===0){
         councilMemory.status='stopped';
-        toast_show('A tanács összes Szolgája meghibásodott');
+        toast_show(t('t_all_failed'));
         break;
       }
 
@@ -1969,13 +2294,13 @@ async function runCouncil(query){
         updateConvergenceBar(score);
         if(score>=cfg.council.convergenceThreshold){
           councilMemory.status='converged';
-          toast_show(`Konvergencia ${(score*100).toFixed(0)}% — a tanács a ${roundNum}. fordulóban megállapodott`,'gold');
+          toast_show(t('conv_reached',(score*100).toFixed(0),roundNum),'gold');
           break;
         }
       }
 
       if(councilState.stopAll){councilMemory.status='stopped';break;}
-      if(councilState.stopAfterRound){councilMemory.status='stopped';toast_show('A tanács a kérésre megállt');break;}
+      if(councilState.stopAfterRound){councilMemory.status='stopped';toast_show(t('t_council_stopped'));break;}
     }
 
     // Final consensus from whatever was collected
@@ -2008,10 +2333,10 @@ async function runCouncil(query){
 // ════════════════════════════════════════════════════════════
 async function send(){
   const prompt=promptEl.value.trim();
-  if(!prompt){toast_show('Kérjük, adjon meg lekérdezést');return;}
-  if(!cfg.key){toast_show('Adja meg az API kulcsot a beállításokban');openPanel();return;}
+  if(!prompt){toast_show(t('t_need_prompt'));return;}
+  if(!cfg.key){toast_show(t('t_need_key'));openPanel();return;}
   const anyMissing=Array.from({length:cfg.count},(_,i)=>cfg.models[i]).some(m=>!m?.id);
-  if(anyMissing){toast_show('Egy vagy több modell ID hiányzik');return;}
+  if(anyMissing){toast_show(t('t_missing_id'));return;}
 
   // Spend guard: if any participating model is paid, confirm before spending
   const paid=paidModelsInUse();
@@ -2021,7 +2346,7 @@ async function send(){
   }
 
   if(cfg.council.councilMode){
-    if(councilRunning){toast_show('A tanács már ülésezik');return;}
+    if(councilRunning){toast_show(t('t_council_busy'));return;}
     runCouncil(prompt);
   }else{
     legacySend(prompt);
@@ -2072,7 +2397,7 @@ function legacySend(prompt){
   btnSend.disabled=true;
   btnStop.style.display='';
   running=cfg.count;
-  sbStat.textContent=`${running} modell fut...`;
+  sbStat.textContent=t('running_n',running);
   for(let i=0;i<cfg.count;i++)streamOne(i,conversations[i]);
 }
 
@@ -2087,7 +2412,7 @@ function stopAfterRound(){
   if(!councilRunning)return;
   councilState.stopAfterRound=true;
   btnStopRound.disabled=true;
-  toast_show('A tanács a jelenlegi forduló után megáll');
+  toast_show(t('t_stop_after'));
 }
 
 function clearAll(){
@@ -2106,25 +2431,25 @@ function clearAll(){
   btnStop.style.display='none';
   btnStopRound.style.display='none';
   roundBadge.classList.remove('show');
-  if(cfg.council.convergenceEnabled)sbConvText.textContent='Konvergencia —';
-  sbStat.textContent='Készen áll';
+  if(cfg.council.convergenceEnabled)sbConvText.textContent=t('sb_conv');
+  sbStat.textContent=t('st_idle');
   running=0;
 }
 
 function copyCard(idx){
   const text=rtexts[idx]||$(`body-${idx}`)?.querySelector('.rtext')?.textContent||'';
-  if(!text){toast_show('Nincs másolható tartalom');return;}
-  navigator.clipboard.writeText(text).then(()=>toast_show('Vágólapra másolva ✓')).catch(()=>toast_show('Másolás sikertelen'));
+  if(!text){toast_show(t('t_no_copy'));return;}
+  navigator.clipboard.writeText(text).then(()=>toast_show(t('t_copied2'))).catch(()=>toast_show(t('t_copy_failed')));
 }
 
 function copySummary(){
   const text=(councilMemory&&councilMemory.consensusSummary)||'';
-  if(!text){toast_show('Nincs másolható összefoglaló');return;}
-  navigator.clipboard.writeText(text).then(()=>toast_show('Összefoglaló másolva ✓')).catch(()=>toast_show('Másolás sikertelen'));
+  if(!text){toast_show(t('t_no_copy_sum'));return;}
+  navigator.clipboard.writeText(text).then(()=>toast_show(t('t_sum_copied'))).catch(()=>toast_show(t('t_copy_failed')));
 }
 
 function exportTranscript(){
-  if(!councilMemory||!councilMemory.rounds.length){toast_show('Nincs exportálható tanácskozás');return;}
+  if(!councilMemory||!councilMemory.rounds.length){toast_show(t('t_no_export'));return;}
   let md=`# Szolga Tanács — Tanácskozási Jegyzőkönyv\n\n`;
   md+=`**A Szolga Hajcsár kérdése:**\n\n${councilMemory.query}\n\n`;
   md+=`**Fordulók:** ${councilMemory.rounds.length} · **Szolgák:** ${activeAgentCount()} · `;
@@ -2141,7 +2466,7 @@ function exportTranscript(){
     });
   });
   if(councilMemory.consensusSummary){
-    md+=`---\n\n# Összefoglaló\n\n${councilMemory.consensusSummary}\n`;
+    md+=`---\n\n# ${t('export_summary_h')}\n\n${councilMemory.consensusSummary}\n`;
   }
   const blob=new Blob([md],{type:'text/markdown;charset=utf-8'});
   const url=URL.createObjectURL(blob);
@@ -2150,7 +2475,7 @@ function exportTranscript(){
   a.download=`szolga-tanacs-${new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')}.md`;
   document.body.appendChild(a); a.click(); a.remove();
   URL.revokeObjectURL(url);
-  toast_show('Jegyzőkönyv letöltve ✓');
+  toast_show(t('t_transcript_dl'));
 }
 
 // ════════════════════════════════════════════════════════════
@@ -2159,7 +2484,7 @@ function exportTranscript(){
 function openPanel(){
   inpKey.value=cfg.key;
   $('inp-reader').value=cfg.readerModel||DEFAULT_READER_MODEL;
-  $('rq-group').innerHTML='<option value="">— Gyors választás —</option>'+VISION_MODELS.map(m=>`<option value="${esc(m)}">${esc(m)}</option>`).join('');
+  $('rq-group').innerHTML=`<option value="">${t('reader_quick')}</option>`+VISION_MODELS.map(m=>`<option value="${esc(m)}">${esc(m)}</option>`).join('');
   inpCnt.value=cfg.count;
   cntVal.textContent=cfg.count;
   // council settings sync
@@ -2183,7 +2508,7 @@ function getTog(onId){return $(onId).classList.contains('active');}
 
 function renderConsensusOptions(){
   const sel=$('inp-consensus');
-  let html=`<option value="auto" ${cfg.council.consensusModel==='auto'?'selected':''}>Automatikus (Összefoglaló szerep / 1. modell)</option>`;
+  let html=`<option value="auto" ${cfg.council.consensusModel==='auto'?'selected':''}>${t("consensus_auto")}</option>`;
   for(let i=0;i<cfg.count;i++){
     const m=cfg.models[i]||{name:`Model ${i+1}`};
     const sel2=String(cfg.council.consensusModel)===String(i)?'selected':'';
@@ -2200,14 +2525,16 @@ function renderMCList(n){
     const d=document.createElement('div');
     d.className='mci';
     d.innerHTML=`
-      <div class="mcidx"><span class="mcnum">${i+1}</span><span>Modell ${i+1}</span></div>
-      <input type="text" class="finp" id="mn-${i}" placeholder="Megjelenítési név (pl. GPT-4o)" value="${esc(m.name)}">
-      <input type="text" class="finp" id="mi-${i}" placeholder="Model ID (pl. openai/gpt-4o)" value="${esc(m.id)}">
-      <button class="mcbrowse" id="mb-${i}" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>Modellek böngészése</button>
+      <div class="mcidx"><span class="mcnum">${i+1}</span><span>${t("model_n")}${i+1}</span></div>
+      <input type="text" class="finp" id="mn-${i}" placeholder="${esc(t('ph_name'))}" value="${esc(m.name)}">
+      <input type="text" class="finp" id="mi-${i}" placeholder="${esc(t('ph_id'))}" value="${esc(m.id)}">
+      <button class="mcbrowse" id="mb-${i}" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>${t("browse_models")}</button>
       <div class="mcprice-row"><span class="mstatus ${(modelStatus[m.id]?.state)||''}" id="mst-${i}" title="${esc(statusTitle(m.id))}"></span><span id="mcp-${i}">${priceLabel(m.id)}</span></div>
-      <div class="mcrlbl">Szerep a tanácsban</div>
+      <div class="mcrlbl">${t("role_label")}</div>
       <select class="qpick" id="mr-${i}">${roleOpts}</select>
-      <input type="text" class="finp" id="mrc-${i}" placeholder="Egyéni szerep (opcionális — felülírja a fentit)" value="${esc(m.roleCustom||'')}">`;
+      <input type="text" class="finp" id="mrc-${i}" placeholder="${esc(t('ph_rolecustom'))}" value="${esc(m.roleCustom||'')}">
+      <div class="mcrlbl">${t("fb_label")}</div>
+      <input type="text" class="finp mcfb" id="mfb-${i}" placeholder="${esc(t('ph_fallbacks'))}" value="${esc((m.fallbacks||[]).join(', '))}">`;
     mclist.appendChild(d);
     $(`mr-${i}`).value=(m.role&&ROLES[m.role])?m.role:'none';
     $(`mb-${i}`).addEventListener('click',()=>openModelPicker(i));
@@ -2288,7 +2615,7 @@ async function extractPdf(file){
 async function ingestFiles(fileList){
   const files=Array.from(fileList||[]);
   for(const f of files){
-    if(attachedDocs.length>=MAX_DOCS){toast_show(`Legfeljebb ${MAX_DOCS} dokumentum csatolható`);break;}
+    if(attachedDocs.length>=MAX_DOCS){toast_show(t('t_doc_max'));break;}
     await ingestFile(f);
   }
 }
@@ -2323,7 +2650,7 @@ async function ingestFile(file){
     if(truncated)text=text.slice(0,DOC_CHAR_BUDGET);
     Object.assign(d,{text,chars:text.length,truncated,note:res.note,status:'ready'});
     renderDocChips();
-    toast_show(truncated?`„${d.name}" feldolgozva (${nf(text.length)} karakterre vágva) ✓`:`„${d.name}" feldolgozva ✓`);
+    toast_show(truncated?t('t_doc_done_trunc',d.name,nf(text.length)):t('t_doc_done',d.name));
   }catch(err){
     const d=findDoc();
     if(d){d.status='error';d.error=err.message;renderDocChips();}
@@ -2397,6 +2724,8 @@ function clearDocs(){
 // EVENT LISTENERS
 // ════════════════════════════════════════════════════════════
 $('btn-settings').addEventListener('click',openPanel);
+$('lang-hu').addEventListener('click',()=>setLang('hu'));
+$('lang-en').addEventListener('click',()=>setLang('en'));
 $('btn-pclose').addEventListener('click',closePanel);
 $('btn-cancel').addEventListener('click',closePanel);
 $('ovl').addEventListener('click',closePanel);
@@ -2456,13 +2785,14 @@ $('btn-save').addEventListener('click',()=>{
   cfg.readerModel=$('inp-reader').value.trim()||DEFAULT_READER_MODEL;
   cfg.count=n;
   for(let i=0;i<8;i++){
-    const nm=$(`mn-${i}`),mi=$(`mi-${i}`),mr=$(`mr-${i}`),mrc=$(`mrc-${i}`);
+    const nm=$(`mn-${i}`),mi=$(`mi-${i}`),mr=$(`mr-${i}`),mrc=$(`mrc-${i}`),mfb=$(`mfb-${i}`);
     if(nm&&mi){
       cfg.models[i]={
         name:nm.value.trim()||PRESETS[i]?.name||`Model ${i+1}`,
         id:mi.value.trim(),
         role:mr?mr.value:(cfg.models[i]?.role||'none'),
-        roleCustom:mrc?mrc.value.trim():(cfg.models[i]?.roleCustom||'')
+        roleCustom:mrc?mrc.value.trim():(cfg.models[i]?.roleCustom||''),
+        fallbacks:mfb?mfb.value.split(',').map(s=>s.trim()).filter(Boolean):(cfg.models[i]?.fallbacks||[])
       };
     }
   }
@@ -2481,13 +2811,13 @@ $('btn-save').addEventListener('click',()=>{
   buildGrid();
   updateTally();
   CostController.updateBar();
-  toast_show('Beállítások mentve ✓');
+  toast_show(t('t_settings_saved'));
 });
 
 modePar.addEventListener('click',()=>{if(!councilRunning)setCouncilMode(false);});
 modeCouncil.addEventListener('click',()=>{if(!councilRunning)setCouncilMode(true);});
 
-promptEl.addEventListener('input',()=>charCnt.textContent=`${promptEl.value.length} karakter`);
+promptEl.addEventListener('input',()=>charCnt.textContent=`${promptEl.value.length} ${t('chars')}`);
 promptEl.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){e.preventDefault();send();}});
 $('btn-send').addEventListener('click',send);
 $('btn-stop').addEventListener('click',stopAll);
