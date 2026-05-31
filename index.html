@@ -163,6 +163,12 @@ kbd{font-family:var(--fm);font-size:9px;background:var(--s2);border:1px solid va
 .sum-ul li{font-family:var(--fb);font-size:13.5px;font-weight:300;line-height:1.6;color:var(--t1);padding-left:17px;position:relative}
 .sum-ul li::before{content:'—';position:absolute;left:0;color:var(--gold);opacity:.55}
 .sum-p code,.sum-ul code{font-family:var(--fm);font-size:11.5px;background:var(--s3);padding:1px 5px;border-radius:4px;color:var(--green)}
+.sum-table{width:100%;border-collapse:collapse;margin:10px 0;font-family:var(--fb);font-size:12.5px}
+.sum-table th,.sum-table td{border:1px solid var(--b2);padding:6px 9px;text-align:left;vertical-align:top;line-height:1.5}
+.sum-table th{background:rgba(196,200,206,.06);color:var(--gold);font-weight:600;font-family:var(--fd);font-size:11px;letter-spacing:.03em}
+.sum-table td{color:var(--t1);font-weight:300}
+.sum-table tr:nth-child(even) td{background:rgba(255,255,255,.015)}
+.sum-table code{font-family:var(--fm);font-size:11px;background:var(--s3);padding:1px 4px;border-radius:3px;color:var(--green)}
 .sum-hr{border:none;border-top:1px solid var(--b1);margin:16px 0}
 .sum-sp{height:7px}
 
@@ -483,7 +489,17 @@ input[type=range]::-moz-range-thumb{width:15px;height:15px;border:none;border-ra
       <div class="field">
         <label class="flbl" data-i18n="lbl_docbudget">Dokumentum-limit (karakter / fájl)</label>
         <div class="rwrap"><input type="range" id="inp-docbudget" min="4000" max="160000" step="4000" value="40000"><span class="rval" id="docbudget-val">40 000</span></div>
-        <div class="fhint" data-i18n="hint_docbudget">Nagyobb érték = alaposabb átnézés, de drágább: a dokumentum minden Szolga minden fordulójába bekerül.</div>
+        <div class="fhint" data-i18n="hint_docbudget">Nagyobb érték = alaposabb átnézés, de több token (költség ≈ limit × Szolgák × fordulók).</div>
+      </div>
+      <div class="field">
+        <div class="fieldrow">
+          <label class="flbl" data-i18n="lbl_docr1">Dokumentum csak az 1. fordulóban</label>
+          <div class="tog" id="set-docr1-tog">
+            <button class="togbtn" data-v="off" id="set-docr1-off" data-i18n="off">Ki</button>
+            <button class="togbtn" data-v="on" id="set-docr1-on" data-i18n="on">Be</button>
+          </div>
+        </div>
+        <div class="fhint" data-i18n="hint_docr1">Bekapcsolva a dokumentum csak az 1. fordulóba kerül be (a Szolgák utána a vitára reagálnak) — sokkal olcsóbb nagy fájlnál.</div>
       </div>
       <div class="field">
         <div class="fieldrow">
@@ -633,7 +649,9 @@ const I18N = {
   lbl_tokbudget:   {hu:'Token limit (összesen)', en:'Token limit (total)'},
   lbl_tokcall:     {hu:'Max token / hívás', en:'Max tokens / call'},
   lbl_docbudget:   {hu:'Dokumentum-limit (karakter / fájl)', en:'Document limit (chars / file)'},
-  hint_docbudget:  {hu:'Nagyobb érték = alaposabb átnézés, de drágább: a dokumentum minden Szolga minden fordulójába bekerül.', en:'Higher = fuller review but pricier: the document is injected into every Servant\'s prompt every round.'},
+  hint_docbudget:  {hu:'Nagyobb érték = alaposabb átnézés, de több token (költség ≈ limit × Szolgák × fordulók).', en:'Higher = fuller review but more tokens (cost ≈ limit × Servants × rounds).'},
+  lbl_docr1:       {hu:'Dokumentum csak az 1. fordulóban', en:'Document only in round 1'},
+  hint_docr1:      {hu:'Bekapcsolva a dokumentum csak az 1. fordulóba kerül be (a Szolgák utána a vitára reagálnak) — sokkal olcsóbb nagy fájlnál.', en:'When on, the document is sent only in round 1 (Servants then react to the discussion) — much cheaper for large files.'},
   lbl_conv:        {hu:'Konvergencia érzékelés', en:'Convergence detection'},
   lbl_convth:      {hu:'Konvergencia küszöb', en:'Convergence threshold'},
   lbl_consensus:   {hu:'Konszenzus modell', en:'Consensus model'},
@@ -974,7 +992,7 @@ ${roleGuidance}`;
 const DEFAULT_COUNCIL = {
   maxRounds:3, maxTotalTokens:50000, maxTokensPerCall:1500,
   convergenceEnabled:true, convergenceThreshold:0.70,
-  councilMode:false, callTimeoutMs:90000, consensusModel:'auto', docCharBudget:40000
+  councilMode:false, callTimeoutMs:90000, consensusModel:'auto', docCharBudget:40000, docFirstRoundOnly:true
 };
 const DEFAULT_READER_MODEL='google/gemini-2.0-flash-001';
 const VISION_MODELS=['google/gemini-2.0-flash-001','google/gemini-2.5-pro-preview','openai/gpt-4o','openai/gpt-4o-mini','anthropic/claude-sonnet-4-5','anthropic/claude-opus-4','anthropic/claude-3.5-haiku','meta-llama/llama-4-maverick','meta-llama/llama-4-scout'];
@@ -1325,11 +1343,25 @@ function renderMarkdown(md){
     .replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>')
     .replace(/(^|[^*])\*([^*]+)\*/g,'$1<em>$2</em>')
     .replace(/`([^`]+)`/g,'<code>$1</code>');
+  const splitRow=r=>{let s=r.trim();if(s.startsWith('|'))s=s.slice(1);if(s.endsWith('|'))s=s.slice(0,-1);return s.split('|').map(c=>c.trim());};
+  const isSep=r=>/\|/.test(r)&&/-/.test(r)&&/^[\s|:-]+$/.test(r.trim());
   const lines=String(md||'').split('\n');
   let html='',inList=false;
   const closeList=()=>{if(inList){html+='</ul>';inList=false;}};
-  for(const raw of lines){
-    const line=raw.replace(/\s+$/,'');
+  for(let i=0;i<lines.length;i++){
+    const line=lines[i].replace(/\s+$/,'');
+    // GitHub-style table: a pipe row immediately followed by a separator row
+    if(line.includes('|')&&i+1<lines.length&&isSep(lines[i+1])){
+      closeList();
+      const head=splitRow(line); i+=2;
+      let tbl='<table class="sum-table"><thead><tr>'+head.map(h=>`<th>${inline(h)}</th>`).join('')+'</tr></thead><tbody>';
+      for(;i<lines.length&&lines[i].includes('|')&&lines[i].trim()!=='';i++){
+        tbl+='<tr>'+splitRow(lines[i]).map(c=>`<td>${inline(c)}</td>`).join('')+'</tr>';
+      }
+      i--;   // step back; the for-loop will re-increment
+      html+=tbl+'</tbody></table>';
+      continue;
+    }
     if(/^#{1,3}\s+/.test(line)){closeList();html+=`<div class="sum-h">${inline(line.replace(/^#{1,3}\s+/,''))}</div>`;continue;}
     if(/^[-*]\s+/.test(line)){if(!inList){html+='<ul class="sum-ul">';inList=true;}html+=`<li>${inline(line.replace(/^[-*]\s+/,''))}</li>`;continue;}
     if(/^---+$/.test(line)){closeList();html+='<hr class="sum-hr">';continue;}
@@ -1426,7 +1458,7 @@ function buildAgentContext(idx, query, memory, roundNum){
     ? buildRound1Prompt(query, roleLabel)
     : buildRoundNPrompt(query, buildTranscript(memory.rounds), roundNum, roleLabel);
   const mem=buildCouncilMemoryBlock();
-  const doc=buildDocBlock();
+  const doc=(cfg.council.docFirstRoundOnly && roundNum>1) ? '' : buildDocBlock();   // skip re-sending the doc in later rounds to save tokens
   user=[mem,doc,user].filter(Boolean).join('\n\n');
   return [{role:'system',content:sys},{role:'user',content:user}];
 }
@@ -2631,6 +2663,7 @@ function openPanel(){
   // council settings sync
   setTog('set-mode-on','set-mode-off',cfg.council.councilMode);
   setTog('set-conv-on','set-conv-off',cfg.council.convergenceEnabled);
+  setTog('set-docr1-on','set-docr1-off',cfg.council.docFirstRoundOnly);
   $('inp-rounds').value=cfg.council.maxRounds; $('rounds-val').textContent=cfg.council.maxRounds;
   $('inp-tokbudget').value=cfg.council.maxTotalTokens;
   $('inp-tokcall').value=cfg.council.maxTokensPerCall;
@@ -2911,6 +2944,8 @@ $('set-mode-on').addEventListener('click',()=>setTog('set-mode-on','set-mode-off
 $('set-mode-off').addEventListener('click',()=>setTog('set-mode-on','set-mode-off',false));
 $('set-conv-on').addEventListener('click',()=>setTog('set-conv-on','set-conv-off',true));
 $('set-conv-off').addEventListener('click',()=>setTog('set-conv-on','set-conv-off',false));
+$('set-docr1-on').addEventListener('click',()=>setTog('set-docr1-on','set-docr1-off',true));
+$('set-docr1-off').addEventListener('click',()=>setTog('set-docr1-on','set-docr1-off',false));
 
 $('ktog').addEventListener('click',()=>{inpKey.type=inpKey.type==='password'?'text':'password';});
 $('rq').addEventListener('change',()=>{const v=$('rq').value;if(v)$('inp-reader').value=v;});
@@ -2967,6 +3002,7 @@ $('btn-save').addEventListener('click',()=>{
   // council settings
   cfg.council.councilMode=getTog('set-mode-on');
   cfg.council.convergenceEnabled=getTog('set-conv-on');
+  cfg.council.docFirstRoundOnly=getTog('set-docr1-on');
   cfg.council.maxRounds=parseInt($('inp-rounds').value,10);
   cfg.council.maxTotalTokens=parseIntSafe($('inp-tokbudget').value,50000);
   cfg.council.maxTokensPerCall=parseIntSafe($('inp-tokcall').value,1500);
