@@ -730,6 +730,8 @@ const I18N = {
   with_summary:    {hu:'összefoglalóval', en:'with summary'},
   fb_trying:       {hu:m=>`Elsődleges nem elérhető — tartalék: ${m}`, en:m=>`Primary unavailable — fallback: ${m}`},
   fb_exhausted:    {hu:'(minden tartalék kimerült)', en:'(all fallbacks exhausted)'},
+  fb_pinned:       {hu:m=>`Tartalékra váltva a hátralévő fordulókra: ${m}`, en:m=>`Switched to fallback for remaining rounds: ${m}`},
+  fb_dropped:      {hu:'Minden modell elérhetetlen — kihagyva a további fordulókból', en:'All models unavailable — dropped from further rounds'},
   fb_label:        {hu:'Tartalék modellek (vesszővel)', en:'Fallback models (comma-separated)'},
   ph_fallbacks:    {hu:'pl. deepseek/deepseek-chat-v3-0324:free, meta-llama/llama-4-scout:free', en:'e.g. deepseek/deepseek-chat-v3-0324:free, meta-llama/llama-4-scout:free'},
   ttl_sessions:    {hu:'Mentett tanácskozások', en:'Saved deliberations'},
@@ -969,6 +971,7 @@ let rtexts={};                // accumulated visible text per card (both modes)
 let conversations={};         // legacy multi-turn history per card
 let councilMemory=null;       // central shared council state (current run)
 let councilRunning=false;     // true while a council session is active
+let councilModelOverride={};  // agentIdx -> working modelId, pinned once a fallback succeeds (per session)
 let councilState={stopAll:false,stopAfterRound:false};
 let councilHistory=[];        // cross-question memory: [{query, consensus, ts}] — session-scoped, like parallel-mode conversations
 const COUNCIL_MEM_CHAR_BUDGET=3500;   // max chars of prior consensus injected per prompt (newest-first)
@@ -2077,7 +2080,8 @@ async function streamOne(idx,messages){
 // Build a Servant's model chain: primary id + its fallback ids (deduped, non-empty)
 function modelChain(idx){
   const m=cfg.models[idx]||{};
-  const chain=[m.id, ...((m.fallbacks)||[])].map(x=>(x||'').trim()).filter(Boolean);
+  const pinned=councilModelOverride[idx];   // if a fallback already worked this session, try it first
+  const chain=[pinned, m.id, ...((m.fallbacks)||[])].map(x=>(x||'').trim()).filter(Boolean);
   return [...new Set(chain)];
 }
 
@@ -2274,8 +2278,10 @@ async function runCouncil(query){
   councilMemory=initMemory(query);
   councilState={stopAll:false,stopAfterRound:false};
   CostController.reset();
+  councilModelOverride={};   // fresh per session
 
   const agents=activeAgents();
+  let liveAgents=agents.slice();   // roster for the current round; shrinks as agents die
   for(const a of agents)resetCard(a.idx);
   removeSummaryCard();
   setRunningUI(true,true);
@@ -2295,9 +2301,9 @@ async function runCouncil(query){
       updateRoundBadge(roundNum,cfg.council.maxRounds);
       sbStat.textContent=t('council_round_run',roundNum);
 
-      const contexts=agents.map(a=>buildAgentContext(a.idx,query,councilMemory,roundNum));
+      const contexts=liveAgents.map(a=>buildAgentContext(a.idx,query,councilMemory,roundNum));
       const roundData=initRound(roundNum);
-      const results=await Promise.allSettled(agents.map((a,i)=>streamOneCouncil(a.idx,contexts[i],roundNum)));
+      const results=await Promise.allSettled(liveAgents.map((a,i)=>streamOneCouncil(a.idx,contexts[i],roundNum)));
       const ok=collectResults(roundData,results);
       councilMemory.rounds.push(roundData);
       councilMemory.totalTokensUsed=CostController.totalTokens;
@@ -2320,6 +2326,30 @@ async function runCouncil(query){
           break;
         }
       }
+
+      // Adapt the roster for the NEXT round: keep agents that produced output,
+      // pin any that succeeded only via a fallback (so we stop retrying the dead
+      // primary), and drop agents whose entire model chain failed.
+      const next=[];
+      results.forEach((r,i)=>{
+        const a=liveAgents[i];
+        const resp=r.status==='fulfilled'?r.value:null;
+        if(resp&&resp.status==='done'&&resp.content){
+          if(resp.usedFallback&&resp.modelId&&councilModelOverride[a.idx]!==resp.modelId){
+            councilModelOverride[a.idx]=resp.modelId;
+            const b=$(`body-${a.idx}`);
+            if(b){const n=document.createElement('div');n.className='rfallback';n.textContent=`↪ ${t('fb_pinned',resp.modelId)}`;b.appendChild(n);}
+          }
+          next.push(a);
+        }else if(resp&&resp.status==='aborted'){
+          next.push(a);   // user-aborted: keep, the session is stopping anyway
+        }else{
+          const b=$(`body-${a.idx}`);   // chain fully failed → drop from further rounds
+          if(b){const n=document.createElement('div');n.className='rfallback';n.textContent=`↪ ${t('fb_dropped')}`;b.appendChild(n);}
+        }
+      });
+      liveAgents=next;
+      if(liveAgents.length===0){councilMemory.status='stopped';toast_show(t('t_all_failed'));break;}
 
       if(councilState.stopAll){councilMemory.status='stopped';break;}
       if(councilState.stopAfterRound){councilMemory.status='stopped';toast_show(t('t_council_stopped'));break;}
