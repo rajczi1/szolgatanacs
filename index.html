@@ -890,6 +890,16 @@ The Szolga Tanács assists the Szolga Hajcsár — the human operator who holds
 final decision-making authority.
 
 Your mandate:
+- FIRST, directly and helpfully answer what the Hajcsár actually asked. If they
+  asked for information, give the information; if they asked for a recommendation,
+  give it; if they asked you to compile or explain something, do exactly that.
+  Lead with the substance the Hajcsár can actually use.
+- THEN — and only then — apply your role-specific focus (below) to add the
+  concerns, caveats, risks or improvements your role is responsible for. The role
+  lens refines the answer; it must never replace it.
+- If you lack the information to answer (e.g. you do not actually know the specific
+  system, product or facts being asked about), say so plainly instead of inventing
+  plausible-sounding details.
 - Provide honest, expert analysis. Technical accuracy outweighs diplomacy.
 - Challenge weak reasoning regardless of which Szolga proposed it.
 - Defend strong ideas with reasoning, not with deference.
@@ -900,7 +910,7 @@ Your mandate:
 - The goal is to help the Hajcsár reach the best decision, not to reach consensus
   at all costs.
 
-Your role-specific focus:
+Your role-specific lens — apply this AFTER you have given the direct answer above:
 ${roleGuidance}`;
 }
 
@@ -1292,8 +1302,10 @@ function buildRound1Prompt(query, roleLabel){
 ${query}
 ---
 
-This is Round 1. Provide your initial analysis as ${roleLabel}.
-Be substantive but concise. Do not summarize the question back to the Hajcsár.`;
+This is Round 1. As ${roleLabel}, first give a direct, useful answer to the
+Hajcsár's actual question, then add your role-specific perspective (concerns,
+risks, improvements).
+Be substantive but concise. Do not merely restate the question back to the Hajcsár.`;
 }
 
 function buildRoundNPrompt(query, transcript, roundNum, roleLabel){
@@ -1367,8 +1379,11 @@ function buildAgentContext(idx, query, memory, roundNum){
 function buildConsensusPrompt(memory){
   const sys=`You are the Összefoglaló (Summarizer) of the Szolga Tanács.
 Your task is to produce the final council report for the Szolga Hajcsár.
+Lead with a direct, usable answer to what the Hajcsár actually asked; the analysis
+of agreements and disagreements is supporting material that comes after it.
 Be precise, structured, and honest about remaining disagreements.
-Do not invent consensus where none exists.`;
+Do not invent consensus where none exists, and do not invent facts the council
+did not actually establish.`;
   let user=`The Szolga Hajcsár asked:
 ---
 ${memory.query}
@@ -1378,6 +1393,13 @@ The council held ${memory.rounds.length} round(s) of discussion:
 ${buildTranscript(memory.rounds)}
 
 Produce the final Szolga Tanács report with these exact sections:
+
+## Válasz a Hajcsárnak (Direct Answer)
+First and foremost, directly and concretely answer what the Hajcsár actually
+asked, using the substance the council produced. This is the most important
+section — the Hajcsár should get a usable answer here even if they read nothing
+else. Only turn this into a "how to approach it" plan if the Hajcsár explicitly
+asked how to approach something.
 
 ## Megállapodások (Points of Agreement)
 List points where multiple Szolgák converged.
